@@ -1,11 +1,8 @@
 #ifndef __UI_H_
 #define __UI_H_
+#include "ALL.h"
 
-#include "main.h"
-#include "st7735.h"
-#include "key.h"
-#include "stdlib.h"
-#define USE_WUWU_UI 1
+#define USE_WUWU_UI 0
 
 
 extern const uint8_t IMG_Setting[];
@@ -16,8 +13,8 @@ extern const uint8_t IMG_Folder[];
 extern const uint8_t IMG_File[];
 
 
-void show_Folder8x8_UI(int16_t x ,int16_t y);
-void show_File8x8_UI(int16_t x ,int16_t y);
+// void show_Folder8x8_UI(int16_t x ,int16_t y);
+// void show_File8x8_UI(int16_t x ,int16_t y);
 
 //UI基本类别
 typedef enum UI_STATE {
@@ -64,7 +61,7 @@ void cartoon_zoom_ui(UI_* ui, uint8_t spd);
 
 void show_Folder8x8_UI(int16_t x, int16_t y);
 void show_File8x8_UI(int16_t x, int16_t y);
-void show_cursor_UI(UI_* cursor);
+// void show_cursor_UI(UI_* cursor);
 
 
 #endif

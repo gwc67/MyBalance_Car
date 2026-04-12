@@ -18,17 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "spi.h"
 #include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Key.h"
-#include "st7735.h"
-#include "font.h"
-#include "Store.h"
-#include "MENU_Show.h"
+#include "ALL.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -94,19 +89,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM2_Init();
-  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
-  LL_GPIO_SetOutputPin(LCD_BL_GPIO_Port, LCD_BL_Pin);
-  // LL_TIM_EnableCounter(TIM2);
-  // LL_TIM_EnableIT_UPDATE(TIM2);
 
   Key_Init();
   Store_Init();
-  tft180_init();
-
-  tft180_clear();
-
-  Menu_Init();
+  OLED_Init();
+  // Menu_Init();
 
  
   /* USER CODE END 2 */
@@ -115,68 +103,15 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    tft180_BufferClean();
+    // tft180_BufferClean();
+    OLED_Clear();
+    OLED_ShowString(0,0,"Hello,World!",OLED_8X16);
+    OLED_ShowString(0,16,"Hello,World!",OLED_8X16);
+    // OLED_ShowString(0,32,"Hello,World!",OLED_8X16);
+    // Menu_Choose();
     
-    // if (Key_Check(KEY_HOLD))
-    // {
-    //   num1 = 1;
-    // }
-    // else{
-    //   num1 = 0;
-    // }
-    
-    // if(Key_Check(KEY_DOWN))
-    // {
-    //     num1 ++;
-    // }
-    // else if (Key_Check(KEY_UP))
-    // {
-    //   num2++;
-    // }
-
-    // if(Key_Check(KEY_SINGLE))
-    // {
-    //   num1++;
-    // }
-    // if (Key_Check(KEY_DOUBLE))
-    // {
-    //   num1 += 100;
-    // }
-    // if (Key_Check(KEY_LONG))
-    // {
-    //   num1 = 0;
-    // }
-    
-    // if (Key_Check(KEY_1,KEY_SINGLE) || Key_Check(0,KEY_REPEAT))
-    // {
-    //   num1++;
-    // }
-    
-    // if (Key_Check(KEY_2,KEY_SINGLE) || Key_Check(1,KEY_REPEAT))
-    // {
-    //   num1--;
-    // }
-    
-    // if (Key_Check(KEY_3,KEY_SINGLE))
-    // {
-    //   num1 = 0;
-    // }
-    
-    // if (Key_Check(KEY_4,KEY_SINGLE) )
-    // {
-    //   num1 = 9999;
-    // }
-    
-    
-    
-    
-    // tft180_BufferShow_uint(0,0,num1,9,TFT180_8X16_FONT);
-    // tft180_BufferShow_uint(0,16,num2,5,TFT180_8X16_FONT);
-    // tft180_BufferShow_uint(0,32,13,2,TFT180_8X16_FONT);
-    Menu_Choose();
-    
-    tft180_Buffer_Updata();
-
+    // tft180_Buffer_Updata();
+    OLED_Update();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -1,15 +1,7 @@
 #ifndef __MENU_SHOW_H
 #define __MENU_SHOW_H
 
-#include "main.h"
-#include "MENU.h"
-#include "stdbool.h"
-#include "Key.h"
-#include "stdio.h"
-#include "Store.h"
-#include "st7735.h"
-#include "font.h"
-
+#include "ALL.h"
 
 
 

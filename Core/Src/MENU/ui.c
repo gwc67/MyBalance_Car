@@ -54,15 +54,15 @@ const uint8_t IMG_File[] = {
 };  /* 文件-8x8 */
 
 
-void show_Folder8x8_UI(int16_t x ,int16_t y)
-{
-    tft180_Buffer_Image(x,y,8,8,IMG_Folder);
-}
+// void show_Folder8x8_UI(int16_t x ,int16_t y)
+// {
+//     tft180_Buffer_Image(x,y,8,8,IMG_Folder);
+// }
 
-void show_File8x8_UI(int16_t x ,int16_t y)
-{
-    tft180_Buffer_Image(x,y,8,8,IMG_File);
-}
+// void show_File8x8_UI(int16_t x ,int16_t y)
+// {
+//     tft180_Buffer_Image(x,y,8,8,IMG_File);
+// }
 
 
 void cartoon_move_ui(UI_* ui, uint8_t spd)
@@ -144,5 +144,5 @@ void set_ui_tarHW(int16_t h,int16_t w,UI_* ui)
 
 void show_cursor_UI(UI_* cursor)
 {
-    tft180_BufferDraw_rectangle_Rvs(cursor->base.x,cursor->base.y,cursor->IMG.high,cursor->IMG.wide,2);
+    OLED_ReverseArea(cursor->base.x,cursor->base.y,cursor->IMG.high,cursor->IMG.wide);
 }

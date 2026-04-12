@@ -1,10 +1,10 @@
 #include "MENU_Show.h"
 #include "ui.h"
 
-#define menu_show_string(_x_, _y_, __string__) (tft180_BufferShow_String((_x_), (_y_), (__string__), TFT180_6X8_FONT))
-#define menu_show_int(_x_, _y_, _int_, _len_) (tft180_BufferShow_int((_x_), (_y_), (_int_), (_len_), TFT180_6X8_FONT))
-#define menu_show_char(_x_, _y_, _char_) (tft180_Buffer_Image((_x_), (_y_), 8, 6, ascii_font_6x8[(_char_) - 32]))
-#define menu_show_float(_x_, _y_, _float_, _len_z_, _len_x_) (tft180_BufferShow_float((_x_), (_y_), (_float_), (_len_z_), (_len_x_), TFT180_6X8_FONT))
+#define menu_show_string(_x_, _y_, __string__) (OLED_ShowString((_x_), (_y_), (__string__), OLED_6X8))
+#define menu_show_int(_x_, _y_, _int_, _len_) (OLED_ShowNum((_x_), (_y_), (_int_), (_len_), OLED_6X8))
+#define menu_show_char(_x_, _y_, _char_) (OLED_ShowChar((_x_), (_y_), (_char_), OLED_6X8))
+#define menu_show_float(_x_, _y_, _float_, _len_z_, _len_x_) (OLED_ShowFloatNum((_x_), (_y_), (_float_), (_len_z_), (_len_x_), OLED_6X8))
 
 #if USE_WUWU_UI
 #define CURSOR_UI_LEN (10) // UI光标长度(不要修改)
@@ -18,7 +18,7 @@
 #define Collum_Sum_len (21) // 还余了2个像素的宽度
 #define Name_Len (10)
 #define Number_Len (7)
-#define EVERY_FOLDER_NUMBER (15) // 每页文件数量限制sssd
+#define EVERY_FOLDER_NUMBER (9) // 每页文件数量限制sssd
 
 MENU head;
 MENU *key;
@@ -105,11 +105,11 @@ static void Menu_Show_Setup(void)
     }
     if (SetupNumber[SetupIndex] < 1)
     {
-        sprintf(tmpchar, "<%.3f>", SetupNumber[SetupIndex]);
+        sprintf(tmpchar, "%.3f", SetupNumber[SetupIndex]);
     }
     else
     {
-        sprintf(tmpchar, "<%.0f>", SetupNumber[SetupIndex]);
+        sprintf(tmpchar, "%.0f", SetupNumber[SetupIndex]);
     }
     tmpchar[strlen(tmpchar)] = ' ';
     tmpchar[SETUP_NUMBER_LEN] = '\0';
@@ -118,8 +118,10 @@ static void Menu_Show_Setup(void)
     //设置步长这里
     if (Setup_mode == 1)
     {
-        set_ui_tarHW(Font_Hight,strlen(tmpchar)*Font_Width,&key_ui);
-        set_ui_tarXY(Collum_Sum_len * Font_Width - Font_Width * SETUP_NUMBER_LEN, Show_Start_y,&key_ui);
+        // set_ui_tarHW(Font_Hight,strlen(tmpchar)*Font_Width,&key_ui);
+        // set_ui_tarXY(Collum_Sum_len * Font_Width - Font_Width * SETUP_NUMBER_LEN, Show_Start_y,&key_ui);
+        menu_show_char((Collum_Sum_len - SETUP_NUMBER_LEN - 1) * Font_Width  , Show_Start_y, '<');
+        menu_show_char((Collum_Sum_len - 1) * Font_Width  , Show_Start_y, '>');
     }
     
 }
@@ -136,8 +138,7 @@ void Menu_Show_Key(void)
         {
             menu_show_string(0, (i + 1) * Font_Hight, "->");
         }
-        else + CURSOR_UI_LEN;
-    key_ui.IMG.tarWide = key_ui.IMG.wide;
+        else
             menu_show_string(0, (i + 1) * Font_Hight, "  ");
 #else
         if (Setup_mode != 1 && key->select != true)
@@ -209,7 +210,7 @@ static void Menu_Show_task(void)
     {
         tmpchar[j] = ' ';
     }
-    tmpchar[EVERY_FOLDER_NUMBER] = '\0';
+    tmpchar[Name_Len] = '\0';
     for (int i = key->parent->Sons + 1; i <= EVERY_FOLDER_NUMBER; i++)
     {
         menu_show_string(Font_Width * 2, Show_Start_y + Font_Hight * i, tmpchar);
@@ -272,19 +273,15 @@ void Menu_Show_Number(void)
         }
         if (s->select == true && Setup_mode != 1)
         {
-            // menu_show_char((Collum_Sum_len - 1) * Font_Width, i * Font_Hight + Show_Start_y, '>');
-            // menu_show_char((Collum_Sum_len - Number_Len - 2) * Font_Width, i * Font_Hight, '<');
+            menu_show_char((Collum_Sum_len - 1) * Font_Width, i * Font_Hight + Show_Start_y, '>');
+            menu_show_char((Collum_Sum_len - Number_Len - 2) * Font_Width, i * Font_Hight, '<');
 
-            
-            set_ui_tarHW(Font_Hight, Font_Width*Number_Len, &key_ui);
-            set_ui_tarXY((Collum_Sum_len - Number_Len - 1) * Font_Width, i * Font_Hight, &key_ui);
         }
-        // else if (s->select == false && s->kind != MENU_Folder)
-        // {
-        //     menu_show_char((Collum_Sum_len - 1) * Font_Width, i * Font_Hight + Show_Start_y, ' ');
-        //     menu_show_char((Collum_Sum_len - Number_Len - 2) * Font_Width, i * Font_Hight, ' ');
-        // }
-        /* BSP_LCD_DisplayStringAt(Font_Width * 2, (i + 1) * Font_Hight, (uint8_t *)s->name, LEFT_MODE); */
+        else if (s->select == false && s->kind != MENU_Folder || s->select == true && Setup_mode == 1)
+        {
+            menu_show_char((Collum_Sum_len - 1) * Font_Width, i * Font_Hight + Show_Start_y, ' ');
+            menu_show_char((Collum_Sum_len - Number_Len - 2) * Font_Width, i * Font_Hight, ' ');
+        }
         s = s->next;
     }
 }

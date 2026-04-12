@@ -23,10 +23,11 @@ virtualFolder:
             - path: ../Core/Src/stm32f1xx_hal_msp.c
             - path: ../Core/Src/system_stm32f1xx.c
             - path: ../Core/Src/tim.c
-            - path: ../Core/Src/spi.c
+            - path: ../Core/Src/i2c.c
           folders:
             - name: Core
-              files: []
+              files:
+                - path: ../Core/ALL.h
               folders:
                 - name: Delay
                   files:
@@ -45,13 +46,6 @@ virtualFolder:
                     - path: ../Core/Src/MyFlash/MyFlash.c
                     - path: ../Core/Src/MyFlash/MyFlash.h
                   folders: []
-                - name: Me_Tft
-                  files:
-                    - path: ../Core/Src/Me_Tft/st7735.c
-                    - path: ../Core/Src/Me_Tft/st7735.h
-                    - path: ../Core/Src/Me_Tft/font.c
-                    - path: ../Core/Src/Me_Tft/font.h
-                  folders: []
                 - name: MENU
                   files:
                     - path: ../Core/Src/MENU/MENU.c
@@ -60,6 +54,13 @@ virtualFolder:
                     - path: ../Core/Src/MENU/MENU_Show.h
                     - path: ../Core/Src/MENU/ui.c
                     - path: ../Core/Src/MENU/ui.h
+                  folders: []
+                - name: OLED
+                  files:
+                    - path: ../Core/Src/OLED/OLED.c
+                    - path: ../Core/Src/OLED/OLED_Data.c
+                    - path: ../Core/Src/OLED/OLED_Data.h
+                    - path: ../Core/Src/OLED/OLED.h
                   folders: []
     - name: Drivers
       files:
@@ -107,6 +108,8 @@ virtualFolder:
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_rcc.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_spi.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_utils.c
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_i2c.c
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c
           folders: []
         - name: CMSIS
           files:
@@ -137,8 +140,6 @@ targets:
         - ../Drivers/STM32F1xx_HAL_Driver/Src
         - ../Core/Src
         - ../Core/Src/OLED
-        - ../Core/Src/MyRTC
-        - ../Core/Src/MySPI
         - ../Core/Src/Delay
         - ../Core/Src/MyTFT
         - ../Core/Src/MyTFT/Fonts
@@ -146,6 +147,7 @@ targets:
         - ../Core/Src/Menu
         - ../Core/Src/MyFlash
         - ../Core/Src/Me_Tft
+        - ../Core
       libList: []
     excludeList:
       - <virtual_root>/Application/User/Core/i2c.c
@@ -155,6 +157,8 @@ targets:
       - <virtual_root>/Application/User/Core/gpio.c
       - ../Core/Src/MySPI/W25Q64.c
       - ../Core/Src/MySPI/MySPI.c
+    settings:
+      debugger: cortex-debug
     toolchain: AC5
     toolchainConfigMap:
       AC5:
