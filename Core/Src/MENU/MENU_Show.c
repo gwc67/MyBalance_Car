@@ -1,10 +1,6 @@
 #include "MENU_Show.h"
 #include "ui.h"
 
-#define menu_show_string(_x_, _y_, __string__) (OLED_ShowString((_x_), (_y_), (__string__), OLED_6X8))
-#define menu_show_int(_x_, _y_, _int_, _len_) (OLED_ShowNum((_x_), (_y_), (_int_), (_len_), OLED_6X8))
-#define menu_show_char(_x_, _y_, _char_) (OLED_ShowChar((_x_), (_y_), (_char_), OLED_6X8))
-#define menu_show_float(_x_, _y_, _float_, _len_z_, _len_x_) (OLED_ShowFloatNum((_x_), (_y_), (_float_), (_len_z_), (_len_x_), OLED_6X8))
 
 #if USE_WUWU_UI
 #define CURSOR_UI_LEN (10) // UI光标长度(不要修改)
@@ -111,15 +107,13 @@ static void Menu_Show_Setup(void)
     {
         sprintf(tmpchar, "%.0f", SetupNumber[SetupIndex]);
     }
-    tmpchar[strlen(tmpchar)] = ' ';
+    tmpchar[strlen(tmpchar)] =   ' ';
     tmpchar[SETUP_NUMBER_LEN] = '\0';
     menu_show_string(Collum_Sum_len * Font_Width - Font_Width * SETUP_NUMBER_LEN, Show_Start_y, tmpchar);
 
     //设置步长这里
     if (Setup_mode == 1)
     {
-        // set_ui_tarHW(Font_Hight,strlen(tmpchar)*Font_Width,&key_ui);
-        // set_ui_tarXY(Collum_Sum_len * Font_Width - Font_Width * SETUP_NUMBER_LEN, Show_Start_y,&key_ui);
         menu_show_char((Collum_Sum_len - SETUP_NUMBER_LEN - 1) * Font_Width  , Show_Start_y, '<');
         menu_show_char((Collum_Sum_len - 1) * Font_Width  , Show_Start_y, '>');
     }
@@ -136,10 +130,10 @@ void Menu_Show_Key(void)
 #if !USE_WUWU_UI
         if (s == key)
         {
-            menu_show_string(0, (i + 1) * Font_Hight, "->");
+            menu_show_string(0, (i ) * Font_Hight, "->");
         }
         else
-            menu_show_string(0, (i + 1) * Font_Hight, "  ");
+            menu_show_string(0, (i ) * Font_Hight, "  ");
 #else
         if (Setup_mode != 1 && key->select != true)
         {

@@ -70,8 +70,8 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define Key1_Pin LL_GPIO_PIN_12
 #define Key1_GPIO_Port GPIOB
-#define Key2_Pin LL_GPIO_PIN_15
-#define Key2_GPIO_Port GPIOB
+#define Key2_Pin LL_GPIO_PIN_8
+#define Key2_GPIO_Port GPIOA
 #define Key3_Pin LL_GPIO_PIN_10
 #define Key3_GPIO_Port GPIOA
 #define Key4_Pin LL_GPIO_PIN_15

@@ -25,7 +25,6 @@ spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
-spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_i2c.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_tim.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_system.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_gpio.h
@@ -36,6 +35,11 @@ spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_rcc.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_utils.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_pwr.h
 spi_hal\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_dma.h
-spi_hal\main.o: ../Core/Inc/i2c.h
 spi_hal\main.o: ../Core/Inc/tim.h
 spi_hal\main.o: ../Core/Inc/gpio.h
+spi_hal\main.o: ..\Core\ALL.h
+spi_hal\main.o: ..\Core\Src\Key\Key.h
+spi_hal\main.o: ..\Core\Src\OLED\OLED.h
+spi_hal\main.o: ..\Core\Src\OLED\OLED_Data.h
+spi_hal\main.o: D:\Downloads\Core\ARM\ARMCC\Bin\..\include\stdbool.h
+spi_hal\main.o: D:\Downloads\Core\ARM\ARMCC\Bin\..\include\stdio.h

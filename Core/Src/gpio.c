@@ -53,13 +53,13 @@ void MX_GPIO_Init(void)
   LL_GPIO_ResetOutputPin(GPIOB, OLED_SCK_Pin|OLED_SDA_Pin);
 
   /**/
-  GPIO_InitStruct.Pin = Key1_Pin|Key2_Pin;
+  GPIO_InitStruct.Pin = Key1_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
-  LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  LL_GPIO_Init(Key1_GPIO_Port, &GPIO_InitStruct);
 
   /**/
-  GPIO_InitStruct.Pin = Key3_Pin|Key4_Pin;
+  GPIO_InitStruct.Pin = Key2_Pin|Key3_Pin|Key4_Pin;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = LL_GPIO_PULL_DOWN;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);

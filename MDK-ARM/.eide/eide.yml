@@ -174,6 +174,7 @@ targets:
             CXX_FLAGS: --diag_suppress=1 --diag_suppress=1295
             C_FLAGS: --diag_suppress=1 --diag_suppress=1295
             c99-mode: true
+            misc-controls: --no-multibyte-chars
             one-elf-section-per-function: true
             optimization: level-3
             warnings: all-warnings
@@ -284,7 +285,7 @@ targets:
           linker:
             $outputTaskExcludes:
               - .bin
-            misc-controls: --diag_suppress=L6329
+            misc-controls: --diag_suppress=L6329,--library_type=microlib
             output-format: elf
         scatterFilePath: <YOUR_SCATTER_FILE>.sct
         storageLayout:
@@ -305,6 +306,43 @@ targets:
                 startAddr: "0x08000000"
               tag: IROM
         useCustomScatterFile: false
+      GCC:
+        archExtensions: ""
+        cpuType: Cortex-M3
+        floatingPointHardware: none
+        options:
+          version: 5
+          afterBuildTasks: []
+          asm-compiler:
+            ASM_FLAGS: ""
+          beforeBuildTasks: []
+          c/cpp-compiler:
+            CXX_FLAGS: ""
+            C_FLAGS: ""
+            language-c: c11
+            language-cpp: c++11
+            one-elf-section-per-data: true
+            one-elf-section-per-function: true
+            optimization: level-debug
+            warnings: all-warnings
+          global:
+            $float-abi-type: hard
+            misc-control: ""
+            not-use-syscalls: true
+            output-debug-info: enable
+            use-newlib-nano: true
+          linker:
+            $outputTaskExcludes:
+              - .bin
+            LD_FLAGS: ""
+            LIB_FLAGS: -lm
+            output-format: elf
+            remove-unused-input-sections: true
+        scatterFilePath: <YOUR_LINKER_SCRIPT>.lds
+        storageLayout:
+          RAM: []
+          ROM: []
+        useCustomScatterFile: true
     uploadConfigMap:
       JLink:
         baseAddr: ""

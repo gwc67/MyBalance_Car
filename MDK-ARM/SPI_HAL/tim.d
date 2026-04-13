@@ -26,7 +26,6 @@ spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
-spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_i2c.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_tim.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_system.h
 spi_hal\tim.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_gpio.h

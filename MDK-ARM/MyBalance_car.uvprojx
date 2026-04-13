@@ -337,7 +337,7 @@
               <MiscControls>--no-multibyte-chars</MiscControls>
               <Define>STM32F103xB,USE_FULL_LL_DRIVER,USE_HAL_DRIVER</Define>
               <Undefine />
-              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F1xx_HAL_Driver/Inc;../Drivers/CMSIS/Device/ST/STM32F1xx/Include;../Drivers/CMSIS/Include;../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy;../Core;../Core/Src/OLED;../Core/Src/Key</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -391,6 +391,16 @@
         <Group>
           <GroupName>Application/User/Core</GroupName>
           <Files>
+            <File>
+              <FileName>system_stm32f1xx.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\system_stm32f1xx.c</FilePath>
+            </File>
+            <File>
+              <FileName>ALL.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\ALL.h</FilePath>
+            </File>
             <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
@@ -1332,6 +1342,46 @@
               <FileName>system_stm32f1xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/system_stm32f1xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>OLED</GroupName>
+          <Files>
+            <File>
+              <FileName>OLED_Data.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\OLED\OLED_Data.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Src\OLED\OLED.h</FilePath>
+            </File>
+            <File>
+              <FileName>OLED.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\OLED\OLED.c</FilePath>
+            </File>
+            <File>
+              <FileName>OLED_Data.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Src\OLED\OLED_Data.h</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Key</GroupName>
+          <Files>
+            <File>
+              <FileName>Key.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Core\Src\Key\Key.h</FilePath>
+            </File>
+            <File>
+              <FileName>Key.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\Key\Key.c</FilePath>
             </File>
           </Files>
         </Group>

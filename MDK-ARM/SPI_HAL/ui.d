@@ -1,0 +1,10 @@
+spi_hal\ui.o: ..\Core\Src\MENU\ui.c
+spi_hal\ui.o: ..\Core\Src\MENU\ui.h
+spi_hal\ui.o: ..\Core\ALL.h
+spi_hal\ui.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
+spi_hal\ui.o: ../Drivers/CMSIS/Include/core_cm3.h
+spi_hal\ui.o: D:\Downloads\Core\ARM\ARMCC\Bin\..\include\stdint.h
+spi_hal\ui.o: ../Drivers/CMSIS/Include/cmsis_version.h
+spi_hal\ui.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
+spi_hal\ui.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
+spi_hal\ui.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h

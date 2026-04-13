@@ -94,7 +94,7 @@ int main(void)
   Key_Init();
   Store_Init();
   OLED_Init();
-  // Menu_Init();
+  Menu_Init();
 
  
   /* USER CODE END 2 */
@@ -103,14 +103,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // tft180_BufferClean();
     OLED_Clear();
-    OLED_ShowString(0,0,"Hello,World!",OLED_8X16);
-    OLED_ShowString(0,16,"Hello,World!",OLED_8X16);
-    // OLED_ShowString(0,32,"Hello,World!",OLED_8X16);
-    // Menu_Choose();
-    
-    // tft180_Buffer_Updata();
+    Menu_Choose();
     OLED_Update();
     /* USER CODE END WHILE */
 
