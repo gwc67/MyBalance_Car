@@ -2,6 +2,8 @@
 #define __ALL_H
 
 #include "stm32f103xb.h"
+
+#include "MyI2C.h"
 #include "Key.h"
 #include "main.h"
 #include "MENU_Show.h"
@@ -11,5 +13,6 @@
 #include "Store.h"
 #include "stdbool.h"
 #include "stdio.h"
-
+#include "MPU6050.h"
+#include "stm32f1xx_ll_gpio.h"
 #endif

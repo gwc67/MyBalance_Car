@@ -62,6 +62,13 @@ virtualFolder:
                     - path: ../Core/Src/OLED/OLED_Data.h
                     - path: ../Core/Src/OLED/OLED.h
                   folders: []
+                - name: I2C
+                  files:
+                    - path: ../Core/Src/I2C/MyI2C.c
+                    - path: ../Core/Src/I2C/MPU6050.h
+                    - path: ../Core/Src/I2C/MPU6050.c
+                    - path: ../Core/Src/I2C/MyI2C.h
+                  folders: []
     - name: Drivers
       files:
         - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_cortex.c
@@ -141,13 +148,12 @@ targets:
         - ../Core/Src
         - ../Core/Src/OLED
         - ../Core/Src/Delay
-        - ../Core/Src/MyTFT
-        - ../Core/Src/MyTFT/Fonts
         - ../Core/Src/Key
         - ../Core/Src/Menu
         - ../Core/Src/MyFlash
         - ../Core/Src/Me_Tft
         - ../Core
+        - ../Core/Src/I2C
       libList: []
     excludeList:
       - <virtual_root>/Application/User/Core/i2c.c

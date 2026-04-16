@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ALL.h"
+#include "MPU6050.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,7 +56,7 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
- 
+
 uint8_t flag;
 /* USER CODE END 0 */
 
@@ -95,8 +96,8 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
+  MPU6050_Init(MPU6050_SCL_GPIO_Port,MPU6050_SCL_Pin,MPU6050_SDA_GPIO_Port,MPU6050_SDA_Pin);
 
- 
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -104,7 +105,9 @@ int main(void)
   while (1)
   {
     OLED_Clear();
-    Menu_Choose();
+    // Menu_Choose();
+    OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
+    // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
     OLED_Update();
     /* USER CODE END WHILE */
 
