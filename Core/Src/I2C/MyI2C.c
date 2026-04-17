@@ -1,15 +1,6 @@
 #include "MyI2C.h"
 
-I2CBus_Struct *P_ThisBus;
-void Delay_us(uint32_t xus)
-{
-    SysTick->LOAD = 72 * xus;   // 设置定时器重装值
-    SysTick->VAL = 0x00;        // 清空当前计数值
-    SysTick->CTRL = 0x00000005; // 设置时钟源为HCLK，启动定时器
-    while (!(SysTick->CTRL & 0x00010000))
-        ;                       // 等待计数到0
-    SysTick->CTRL = 0x00000004; // 关闭定时器
-}
+static I2CBus_Struct *P_ThisBus;
 
 #define I2C_SCL_Write(x) HAL_GPIO_WritePin(P_ThisBus->SCL_GPIO, P_ThisBus->SCL_Pin, (GPIO_PinState)x)
 #define I2C_SDA_Write(x) HAL_GPIO_WritePin(P_ThisBus->SDA_GPIO, P_ThisBus->SDA_Pin, (GPIO_PinState)x)
@@ -99,23 +90,49 @@ uint8_t MyI2C_ReceiveByte(void)
     return ACK;
 }
 
-void MyI2C_Init()
+void MyI2C_Init(I2CBus_Struct *I2C_Bus, GPIO_TypeDef *SCL_Port, uint16_t SCL_Pin, GPIO_TypeDef* SDA_Port, uint16_t SDA_Pin, uint8_t Address, uint16_t Delay_Time)
 {
-     
-    __HAL_RCC_GPIOB_CLK_ENABLE();
+    P_ThisBus = I2C_Bus;
+    I2C_Bus->Address = Address << 1;
+    I2C_Bus->Delay_Time = Delay_Time;
+    I2C_Bus->SCL_GPIO = SCL_Port;
+    I2C_Bus->SCL_Pin = SCL_Pin;
+    I2C_Bus->SDA_GPIO = SDA_Port;
+    I2C_Bus->SDA_Pin = SDA_Pin;
+    I2C_Bus->Mode_16bit = 0; // 默认使用8bit模式
 
-    // 2. 配置 GPIO 初始化结构体
-    GPIO_InitTypeDef initstruct = {0}; // 推荐初始化为0
+    if (SCL_Port == GPIOA || SDA_Port == GPIOA)
+    {
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOA);
+    }
+    else if (SCL_Port == GPIOB || SDA_Port == GPIOB)
+    {
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
+    }
+    else if (SCL_Port == GPIOB || SDA_Port == GPIOB)
+    {
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOB);
+    }
+    else if (SCL_Port == GPIOC || SDA_Port == GPIOC)
+    {
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOC);
+    }
+    else if (SCL_Port == GPIOD || SDA_Port == GPIOD)
+    {
+        LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_GPIOD);
+    }
 
-    initstruct.Mode = GPIO_MODE_OUTPUT_OD;      // 开漏输出 (替代 GPIO_Mode_Out_OD)
-    initstruct.Pin = GPIO_PIN_10 | GPIO_PIN_11; // 引脚定义 (替代 GPIO_Pin_10 | GPIO_Pin_11)
-    initstruct.Speed = GPIO_SPEED_FREQ_HIGH;    // 高速 (50MHz, 替代 GPIO_Speed_50MHz)
+    LL_GPIO_InitTypeDef gpio_structure;
+    gpio_structure.Mode = GPIO_MODE_OUTPUT_OD;
+    gpio_structure.Speed = GPIO_SPEED_FREQ_HIGH;
+    gpio_structure.Pin = SDA_Pin;
+    // gpio_structure.Pull = GPIO_PULLUP;
+    LL_GPIO_Init(SDA_Port, &gpio_structure);
+    gpio_structure.Pin = SCL_Pin;
+    LL_GPIO_Init(SCL_Port, &gpio_structure);    
 
-    // 3. 初始化 GPIOB
-    HAL_GPIO_Init(GPIOB, &initstruct);
-
-    // 4. 设置 SCL/SDA 默认高电平 (替代 GPIO_SetBits)
-    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_10 | GPIO_PIN_11, GPIO_PIN_SET);
+    I2C_SCL_Write(1);
+    I2C_SDA_Write(1);
 }
 
 // 0 : 8-bit 1:16-bit
@@ -142,8 +159,8 @@ void MyI2C_WriteReg(I2CBus_Struct *I2C_Bus, uint8_t RegAddress, uint16_t Data)
     {
         MyI2C_SendByte((uint8_t)Data);
     }
-    MyI2C_ReceiveACK();
-    MyI2C_Stop();
+    I2C_ReceiveAck();
+    I2C_Stop();
 }
 
 uint16_t MyI2C_ReadReg(I2CBus_Struct *I2C_Bus, uint8_t RegAddress)
@@ -161,42 +178,22 @@ uint16_t MyI2C_ReadReg(I2CBus_Struct *I2C_Bus, uint8_t RegAddress)
     //     return 0xffff;
     // }
 
-    // MyI2C_Start();
-    // MyI2C_SendByte(0XD0 | 0x01); // 读模式
-    // uint16_t Data;
-    // if (I2C_Bus->Mode_16bit == 1)
-    // {
-    //     Data = (uint16_t)MyI2C_ReceiveByte() << 8;
-    //     MyI2C_SendACK(0);
-    //     Data |= (uint16_t)MyI2C_ReceiveByte();
-    // }
-    // else
-    // {
-    //     Data = (uint16_t)MyI2C_ReceiveByte();
-    // }
-    // MyI2C_SendACK(1);
-    // MyI2C_Stop();
-    // return Data;
-
-        uint8_t Data ; 
-	
-// 	//指定地址的操作
-	 MyI2C_Start();
-	MyI2C_SendByte(0xD0);
-	MyI2C_ReceiveACK();
-	MyI2C_SendByte(RegAddress);
-	MyI2C_ReceiveACK();
-	
-	//重新设置写读位
-	MyI2C_Start();
-	MyI2C_SendByte(0xD0 | 0x01);
-	MyI2C_ReceiveACK();
-	Data = MyI2C_ReceiveByte();
-	//  1 ： 从机不再发送数据  0 ： 从机继续发送数据
-	MyI2C_SendACK(1);
-	MyI2C_Stop();
-	
-	return Data;
+    I2C_Start();
+    I2C_WriteByte(I2C_Bus->Address | 0x01); // 读模式
+    uint16_t Data;
+    if (I2C_Bus->Mode_16bit == 1)
+    {
+        Data = (uint16_t)I2C_ReceiveByte() << 8;
+        I2C_WriteAck(0);
+        Data |= (uint16_t)I2C_ReceiveByte();
+    }
+    else
+    {
+        Data = (uint16_t)I2C_ReceiveByte();
+    }
+    I2C_WriteAck(1);
+    I2C_Stop();
+    return Data;
 }
 
 void MyI2C_WriteReg_Continue(I2CBus_Struct *I2CBus, uint8_t RegAddress, uint8_t *arrary, uint16_t arrary_size)

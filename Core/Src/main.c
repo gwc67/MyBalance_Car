@@ -51,12 +51,8 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
-
-
- 
-extern void aaa( );
- 
-MPU6050_raw RAW;
+MPU6050_raw raw;
+extern void Delay_us(uint32_t xus);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -111,14 +107,16 @@ int main(void)
  
   while (1)
   {
+    MPU6050_Get_Angle(&raw);
+    Delay_us(10000);
     OLED_Clear();
     // Menu_Choose();
     MPU6050_Get_Raw(&RAW);
     OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
-    OLED_Printf(0, 16, OLED_8X16, "SCL %d", HAL_GPIO_ReadPin(MPU6050_SCL_GPIO_Port,MPU6050_SCL_Pin));
-    OLED_Printf(0, 32, OLED_8X16, "SDA %d", HAL_GPIO_ReadPin(MPU6050_SDA_GPIO_Port,MPU6050_SDA_Pin));
-    OLED_Printf(0,48,OLED_8X16,"%d",RAW.GyroX);
-    OLED_Printf(16,48,OLED_8X16,"%d",RAW.GyroY);
+    OLED_Printf(0, 16, OLED_8X16, "pitch:%.2f",raw.pitch);
+    OLED_Printf(0, 32, OLED_8X16, "yaw:%.2f",raw.yaw);
+    OLED_Printf(0, 48, OLED_8X16, "roll:%.2f",raw.roll);
+    OLED_Printf(32,0,OLED_8X16,"%d",raw.GyroZ);
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
     OLED_Update();
     /* USER CODE END WHILE */
