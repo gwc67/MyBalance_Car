@@ -111,7 +111,6 @@ int main(void)
     Delay_us(10000);
     OLED_Clear();
     // Menu_Choose();
-    MPU6050_Get_Raw(&RAW);
     OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
     OLED_Printf(0, 16, OLED_8X16, "pitch:%.2f",raw.pitch);
     OLED_Printf(0, 32, OLED_8X16, "yaw:%.2f",raw.yaw);
