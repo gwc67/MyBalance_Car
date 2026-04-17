@@ -1,7 +1,7 @@
 #ifndef MYI2C_H
 #define MYI2C_H
 
-#include "ALL.h" 
+#include "ALL.h"
 typedef struct I2CBus_Struct
 {
     GPIO_TypeDef *SCL_GPIO;
@@ -13,9 +13,20 @@ typedef struct I2CBus_Struct
     uint16_t Delay_Time; //
 } I2CBus_Struct;
 
+void MyI2C_Start();
 
+void MyI2C_Stop();
 
-void MyI2C_Init(I2CBus_Struct *I2C_Bus, GPIO_TypeDef *SCL_Port, uint16_t SCL_Pin, GPIO_TypeDef *SDA_Port, uint16_t SDA_Pin, uint8_t Address, uint16_t Delay_Time);
+void MyI2C_SendByte(uint8_t Byte);
+
+uint8_t MyI2C_ReceiveByte(void);
+
+void MyI2C_SendACK(uint8_t Ack);
+
+// 0 应答 1 不应答
+uint8_t MyI2C_ReceiveACK();
+
+void MyI2C_Init();
 
 // 0 : 8-bit 1:16-bit
 void MyI2C_SetMode(I2CBus_Struct *I2C_Bus, uint8_t mode);

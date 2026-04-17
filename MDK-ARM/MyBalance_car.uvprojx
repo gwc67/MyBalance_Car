@@ -566,9 +566,9 @@
               </FileOption>
             </File>
             <File>
-              <FileName>stm32f1xx_ll_gpio.c</FileName>
+              <FileName>stm32f1xx_ll_tim.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_gpio.c</FilePath>
+              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -614,9 +614,9 @@
               </FileOption>
             </File>
             <File>
-              <FileName>stm32f1xx_ll_tim.c</FileName>
+              <FileName>stm32f1xx_ll_gpio.c</FileName>
               <FileType>1</FileType>
-              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c</FilePath>
+              <FilePath>../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_gpio.c</FilePath>
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
