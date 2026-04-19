@@ -200,23 +200,20 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM2 global interrupt.
+  * @brief This function handles TIM1 update interrupt.
   */
-void TIM2_IRQHandler(void)
+void TIM1_UP_IRQHandler(void)
 {
-  /* USER CODE BEGIN TIM2_IRQn 0 */
-  if (LL_TIM_IsActiveFlag_UPDATE(TIM2) == SET)
+  /* USER CODE BEGIN TIM1_UP_IRQn 0 */
+if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
-    LL_TIM_ClearFlag_UPDATE(TIM2);
+    LL_TIM_ClearFlag_UPDATE(TIM1);
     Key_Tick();
   }
-  
- 
+  /* USER CODE END TIM1_UP_IRQn 0 */
+  /* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
-  /* USER CODE END TIM2_IRQn 0 */
-  /* USER CODE BEGIN TIM2_IRQn 1 */
-
-  /* USER CODE END TIM2_IRQn 1 */
+  /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

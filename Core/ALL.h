@@ -5,6 +5,7 @@
 
 #include "MyI2C.h"
 #include "Key.h"
+#include "LED.h"
 #include "main.h"
 #include "MENU_Show.h"
 #include "MENU.h"
@@ -14,5 +15,7 @@
 #include "stdbool.h"
 #include "stdio.h"
 #include "MPU6050.h"
+#include "Uart.h"
 #include "stm32f1xx_ll_gpio.h"
+#include "stdarg.h"
 #endif

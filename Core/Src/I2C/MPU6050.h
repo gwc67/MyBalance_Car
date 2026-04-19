@@ -32,5 +32,6 @@ void MPU6050_Get_Raw(MPU6050_raw* this);
 uint8_t MPU6050_ID(void);
 float MPU6050_GetTemp();
 void MPU6050_Get_Angle(MPU6050_raw *this);
+void MPU6050_Get_Angle_Plus(MPU6050_raw *this);
 
 #endif 

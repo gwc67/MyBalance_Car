@@ -30,16 +30,16 @@ extern "C" {
 #include "stm32f1xx_hal.h"
 
 #include "stm32f1xx_ll_tim.h"
-#include "stm32f1xx_ll_bus.h"
-#include "stm32f1xx_ll_cortex.h"
+#include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_rcc.h"
+#include "stm32f1xx_ll_bus.h"
 #include "stm32f1xx_ll_system.h"
+#include "stm32f1xx_ll_exti.h"
+#include "stm32f1xx_ll_cortex.h"
 #include "stm32f1xx_ll_utils.h"
 #include "stm32f1xx_ll_pwr.h"
-#include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_dma.h"
-
-#include "stm32f1xx_ll_exti.h"
+#include "stm32f1xx_ll_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -69,21 +69,23 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define LED1_Pin GPIO_PIN_13
+#define LED1_GPIO_Port GPIOC
+#define Key4_Pin GPIO_PIN_4
+#define Key4_GPIO_Port GPIOA
+#define Key3_Pin GPIO_PIN_5
+#define Key3_GPIO_Port GPIOA
+#define Key2_Pin GPIO_PIN_0
+#define Key2_GPIO_Port GPIOB
+#define Key1_Pin GPIO_PIN_1
+#define Key1_GPIO_Port GPIOB
 #define MPU6050_SCL_Pin GPIO_PIN_10
 #define MPU6050_SCL_GPIO_Port GPIOB
 #define MPU6050_SDA_Pin GPIO_PIN_11
 #define MPU6050_SDA_GPIO_Port GPIOB
-#define Key1_Pin GPIO_PIN_12
-#define Key1_GPIO_Port GPIOB
-#define Key2_Pin GPIO_PIN_8
-#define Key2_GPIO_Port GPIOA
-#define Key3_Pin GPIO_PIN_10
-#define Key3_GPIO_Port GPIOA
-#define Key4_Pin GPIO_PIN_15
-#define Key4_GPIO_Port GPIOA
-#define OLED_SCK_Pin GPIO_PIN_6
+#define OLED_SCK_Pin GPIO_PIN_8
 #define OLED_SCK_GPIO_Port GPIOB
-#define OLED_SDA_Pin GPIO_PIN_7
+#define OLED_SDA_Pin GPIO_PIN_9
 #define OLED_SDA_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */

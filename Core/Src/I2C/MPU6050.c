@@ -178,10 +178,139 @@ void MPU6050_Get_Angle(MPU6050_raw *this)
     this->pitch = -(weight * atan2(Ax, Az) / 3.1415926f * 180.f + (1 - weight) * Gyroscope_pitch);
 
     
-    if(Gz > - 0.018f && Gz < 0.018f)  // 类似pid算法的优化
-    {
-        Gz = 0;
-    }
+    // if(Gz > - 0.018f && Gz < 0.018f)  // 类似pid算法的优化
+    // {
+    //     Gz = 0;
+    // }
     this->yaw += Gz *57.2958f  ;
     // printf("%.3f,%.3f,%.3f,%d\n", this->roll, this->pitch, this->yaw,temp); // 通过串口打印数据(用于检查驱动是否正常)
+}
+
+static inline float invSqrt(float x)
+{
+    float halfx = 0.5f * x;
+    float y     = x;
+    long i      = *(long *)&y;
+    i           = 0x5f3759df - (i >> 1);
+    y           = *(float *)&i;
+    y           = y * (1.5f - (halfx * y * y)); // 一次牛顿迭代
+    return y;
+}
+
+// 四元素法+动态互补滤波
+void MPU6050_Get_Angle_Plus(MPU6050_raw *this)
+{
+    static uint16_t times = 0;
+    static float q0 = 1.0f, q1 = 0.0f, q2 = 0.0f, q3 = 0.0f;
+    static float Kp, Ki;
+    static float integralX = 0.0f, integralY = 0.0f, integralZ = 0.0f;
+
+    // 读取原始数据
+    MPU6050_Get_Raw(this);
+
+    // 转换为物理量
+    float ax = (float)this->AccX * accelScale;
+    float ay = (float)this->AccY * accelScale;
+    float az = (float)this->AccZ * accelScale;
+    float gx = (float)this->GyroX * gyroScale;
+    float gy = (float)this->GyroY * gyroScale;
+    float gz = (float)this->GyroZ * gyroScale;
+
+    // 加速度幅值（用于自适应增益）
+    float accMag = ax * ax + ay * ay + az * az;
+
+    // 初始化阶段参数
+    if (times < 400) {
+        times++;
+        Kp = 8.f;
+        Ki = 0.002f;
+    } else {
+        // 动态调整增益
+        Kp = (accMag > 1.44f || accMag < 0.64f) ? 3.6f : 4.8f;
+        Ki = (accMag > 1.44f || accMag < 0.64f) ? 0.001f : 0.0015f;
+    }
+
+    // 加速度计有效时校正姿态
+    if (accMag > 0.01f) {
+        float recipNorm = invSqrt(accMag);
+        ax *= recipNorm;
+        ay *= recipNorm;
+        az *= recipNorm;
+
+        // 计算重力方向误差
+        float vx = 2.0f * (q1 * q3 - q0 * q2);
+        float vy = 2.0f * (q0 * q1 + q2 * q3);
+        float vz = q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3;
+
+        float ex = ay * vz - az * vy;
+        float ey = az * vx - ax * vz;
+        float ez = ax * vy - ay * vx;
+
+        // 积分项校正
+        if (Ki > 0.0f) {
+            integralX += ex * mpu6050_dt;
+            integralY += ey * mpu6050_dt;
+            integralZ += ez * mpu6050_dt;
+            gx += Ki * integralX;
+            gy += Ki * integralY;
+            gz += Ki * integralZ;
+        }
+
+        // 比例项校正
+        gx += Kp * ex;
+        gy += Kp * ey;
+        gz += Kp * ez;
+    }
+
+    // 四元数更新（核心计算）
+    float qDot0 = 0.5f * (-q1 * gx - q2 * gy - q3 * gz);
+    float qDot1 = 0.5f * (q0 * gx + q2 * gz - q3 * gy);
+    float qDot2 = 0.5f * (q0 * gy - q1 * gz + q3 * gx);
+    float qDot3 = 0.5f * (q0 * gz + q1 * gy - q2 * gx);
+
+    q0 += qDot0 * mpu6050_dt;
+    q1 += qDot1 * mpu6050_dt;
+    q2 += qDot2 * mpu6050_dt;
+    q3 += qDot3 * mpu6050_dt;
+
+    // 四元数归一化
+    float norm = invSqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3);
+    q0 *= norm;
+    q1 *= norm;
+    q2 *= norm;
+    q3 *= norm;
+
+    this->q0 = q0;
+    this->q1 = q1;
+    this->q2 = q2;
+    this->q3 = q3;
+
+    // 计算欧拉角（四元数转欧拉角核心）
+    this->roll        = atan2f(2.0f * (q0 * q1 + q2 * q3), 1.0f - 2.0f * (q1 * q1 + q2 * q2)) * 57.29578f;
+    this->pitch       = asinf(2.0f * (q0 * q2 - q3 * q1)) * 57.29578f;
+    float current_yaw = atan2f(2.0f * (q0 * q3 + q1 * q2), 1.0f - 2.0f * (q2 * q2 + q3 * q3)) * 57.29578f;
+
+    // 最快的yaw角解包裹处理
+    static float unwrapped_yaw = 0.0f;
+    static uint8_t first_run   = 1;
+
+    if (first_run) {
+        unwrapped_yaw = current_yaw; // 初始化
+        first_run     = 0;
+    } else {
+        // 仅用一次差值判断跳变，无累计计算
+        float diff = current_yaw - unwrapped_yaw;
+        if (diff > 180.0f) {
+            unwrapped_yaw += diff - 360.0f; // 正向跳变修正
+        } else if (diff < -180.0f) {
+            unwrapped_yaw += diff + 360.0f; // 负向跳变修正
+        } else {
+            unwrapped_yaw = current_yaw; // 无跳变直接更新
+        }
+    }
+
+    // 应用校准
+    this->roll -= angle_roll;
+    this->pitch -= angle_pitch;
+    this->yaw = unwrapped_yaw - angle_yaw; // 输出连续yaw角
 }

@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "tim.h"
+#include "usart.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -62,9 +63,9 @@ uint8_t flag;
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -90,34 +91,61 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_TIM2_Init();
+  MX_USART2_UART_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
- 
+
   Key_Init();
   Store_Init();
   OLED_Init();
   Menu_Init();
-  MPU6050_Init(MPU6050_SCL_GPIO_Port,MPU6050_SCL_Pin,MPU6050_SDA_GPIO_Port,MPU6050_SDA_Pin);
- 
- 
+  MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
- 
+  uint8_t i = 0;
   while (1)
   {
-    MPU6050_Get_Angle(&raw);
+    LED1_OFF();
+
+    // MPU6050_Get_Angle_Plus(&raw);
     Delay_us(10000);
+
     OLED_Clear();
+    if (Key_Check(KEY_1, KEY_DOWN))
+    {
+      i += 1;
+    }
+    else if (Key_Check(KEY_2, KEY_DOWN))
+    {
+      i -= 1;
+    }
+    else if (Key_Check(KEY_3, KEY_DOWN))
+    {
+      i = 100;
+    }
+    else if (Key_Check(KEY_4, KEY_DOWN))
+    {
+      i = 0;
+    }
+    OLED_Printf(0, 0, OLED_8X16, "%d", i);
+    OLED_Printf(16, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key1_GPIO_Port,Key1_Pin));
+    OLED_Printf(32, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key2_GPIO_Port,Key2_Pin));
+    OLED_Printf(48, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key3_GPIO_Port,Key3_Pin));
+    OLED_Printf(64, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key4_GPIO_Port,Key4_Pin));
+
     // Menu_Choose();
-    OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
-    OLED_Printf(0, 16, OLED_8X16, "pitch:%.2f",raw.pitch);
-    OLED_Printf(0, 32, OLED_8X16, "yaw:%.2f",raw.yaw);
-    OLED_Printf(0, 48, OLED_8X16, "roll:%.2f",raw.roll);
-    OLED_Printf(32,0,OLED_8X16,"%d",raw.GyroZ);
+    // OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
+    // OLED_Printf(0, 16, OLED_8X16, "pitch:%.2f",raw.pitch);
+    // OLED_Printf(0, 32, OLED_8X16, "yaw:%.2f",raw.yaw);
+    // OLED_Printf(0, 48, OLED_8X16, "roll:%.2f",raw.roll);
+    // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
+
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
     OLED_Update();
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -126,17 +154,17 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -150,9 +178,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -169,9 +196,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -184,12 +211,12 @@ void Error_Handler(void)
 }
 #ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

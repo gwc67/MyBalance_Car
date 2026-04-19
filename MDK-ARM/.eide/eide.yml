@@ -28,6 +28,7 @@ virtualFolder:
             - name: Core
               files:
                 - path: ../Core/ALL.h
+                - path: ../Core/Src/usart.c
               folders:
                 - name: Delay
                   files:
@@ -61,6 +62,8 @@ virtualFolder:
                     - path: ../Core/Src/OLED/OLED_Data.c
                     - path: ../Core/Src/OLED/OLED_Data.h
                     - path: ../Core/Src/OLED/OLED.h
+                    - path: ../Core/Src/OLED/LED.c
+                    - path: ../Core/Src/OLED/LED.h
                   folders: []
                 - name: I2C
                   files:
@@ -68,6 +71,11 @@ virtualFolder:
                     - path: ../Core/Src/I2C/MPU6050.h
                     - path: ../Core/Src/I2C/MPU6050.c
                     - path: ../Core/Src/I2C/MyI2C.h
+                  folders: []
+                - name: USART
+                  files:
+                    - path: ../Core/Src/Usart/Uart.c
+                    - path: ../Core/Src/Usart/Uart.h
                   folders: []
     - name: Drivers
       files:
@@ -117,6 +125,7 @@ virtualFolder:
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_utils.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_i2c.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usart.c
           folders: []
         - name: CMSIS
           files:
@@ -154,6 +163,8 @@ targets:
         - ../Core/Src/Me_Tft
         - ../Core
         - ../Core/Src/I2C
+        - ../Core/Src/Usart
+        - ../Core/Src/LED
       libList: []
     excludeList:
       - <virtual_root>/Application/User/Core/i2c.c

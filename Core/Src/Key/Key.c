@@ -7,28 +7,28 @@ uint8_t Key_GetState(uint8_t n)
 {
 	if (n == KEY_1)
 	{
-		if (GPIO_Read_Bit(Key1_GPIO_Port, Key1_Pin) == 1)
+		if (GPIO_Read_Bit(Key1_GPIO_Port, Key1_Pin) == 0)
 		{
 			return KEY_PRESSED;
 		}
 	}
 	else if (n == KEY_2)
 	{
-		if (GPIO_Read_Bit(Key2_GPIO_Port, Key2_Pin) == 1)
+		if (GPIO_Read_Bit(Key2_GPIO_Port, Key2_Pin) == 0)
 		{
 			return KEY_PRESSED;
 		}
 	}
 	else if (n == KEY_3)
 	{
-		if (GPIO_Read_Bit(Key3_GPIO_Port, Key3_Pin) == 1)
+		if (GPIO_Read_Bit(Key3_GPIO_Port, Key3_Pin) == 0)
 		{
 			return KEY_PRESSED;
 		}
 	}
 	else if (n == KEY_4)
 	{
-		if (GPIO_Read_Bit(Key4_GPIO_Port, Key4_Pin))
+		if (GPIO_Read_Bit(Key4_GPIO_Port, Key4_Pin) == 0)
 		{
 			return KEY_PRESSED;
 		}
@@ -157,7 +157,7 @@ void Key_Init(void)
 #if HAL
 	HAL_TIM_Base_Start_It(&htim2)
 #else
-	LL_TIM_EnableCounter(TIM2);
-	LL_TIM_EnableIT_UPDATE(TIM2);
+	LL_TIM_EnableCounter(TIM1);
+	LL_TIM_EnableIT_UPDATE(TIM1);
 #endif
 }

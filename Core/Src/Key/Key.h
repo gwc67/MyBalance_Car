@@ -21,9 +21,9 @@
 	#include "stm32f1xx_hal_tim.h"
 #else
 	#include "stm32f1xx_ll_tim.h"
-	#define GPIO_Read_Bit(GPIO,Pin)   LL_GPIO_IsInputPinSet(GPIO,Pin)
+	#define GPIO_Read_Bit(GPIO,Pin)   HAL_GPIO_ReadPin(GPIO,Pin)
 #endif
-
+	
 #define KEY_PRESSED         1
 #define KEY_UNPRESSED       0
 
