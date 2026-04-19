@@ -22,7 +22,7 @@
 #include "stm32f1xx_it.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "Key.h"
+#include "ALL.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,7 +85,7 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-  __asm("BKPT #0"); // 调试时停在这里
+    __asm("BKPT #0"); // 调试时停在这里
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -205,10 +205,11 @@ void SysTick_Handler(void)
 void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
-if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
+  if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
     LL_TIM_ClearFlag_UPDATE(TIM1);
-    Key_Tick();
+    // Key_Tick();
+    MPU6050_Get_Raw(&raw);
   }
   /* USER CODE END TIM1_UP_IRQn 0 */
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */

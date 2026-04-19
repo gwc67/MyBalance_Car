@@ -53,7 +53,7 @@
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
 MPU6050_raw raw;
-extern void Delay_us(uint32_t xus);
+// extern void Delay_us(uint32_t xus);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -92,6 +92,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
@@ -99,48 +100,22 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
-  MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
 
+  LED1_OFF();
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  uint8_t i = 0;
   while (1)
   {
-    LED1_OFF();
-
-    // MPU6050_Get_Angle_Plus(&raw);
-    Delay_us(10000);
 
     OLED_Clear();
-    if (Key_Check(KEY_1, KEY_DOWN))
-    {
-      i += 1;
-    }
-    else if (Key_Check(KEY_2, KEY_DOWN))
-    {
-      i -= 1;
-    }
-    else if (Key_Check(KEY_3, KEY_DOWN))
-    {
-      i = 100;
-    }
-    else if (Key_Check(KEY_4, KEY_DOWN))
-    {
-      i = 0;
-    }
-    OLED_Printf(0, 0, OLED_8X16, "%d", i);
-    OLED_Printf(16, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key1_GPIO_Port,Key1_Pin));
-    OLED_Printf(32, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key2_GPIO_Port,Key2_Pin));
-    OLED_Printf(48, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key3_GPIO_Port,Key3_Pin));
-    OLED_Printf(64, 0, OLED_8X16, "%d", HAL_GPIO_ReadPin(Key4_GPIO_Port,Key4_Pin));
 
     // Menu_Choose();
-    // OLED_Printf(0, 0, OLED_8X16, "%d", MPU6050_ID());
-    // OLED_Printf(0, 16, OLED_8X16, "pitch:%.2f",raw.pitch);
-    // OLED_Printf(0, 32, OLED_8X16, "yaw:%.2f",raw.yaw);
-    // OLED_Printf(0, 48, OLED_8X16, "roll:%.2f",raw.roll);
+
+    OLED_Printf(0, 16, OLED_8X16, "X:%d", raw.AccX);
+    OLED_Printf(0, 32, OLED_8X16, "Y:%d", raw.AccY);
+    OLED_Printf(0, 48, OLED_8X16, "Z:%d", raw.AccZ);
     // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
 
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
