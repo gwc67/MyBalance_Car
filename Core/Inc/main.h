@@ -71,6 +71,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define LED1_Pin GPIO_PIN_13
 #define LED1_GPIO_Port GPIOC
+#define PWMB_Pin GPIO_PIN_0
+#define PWMB_GPIO_Port GPIOA
+#define PWMA_Pin GPIO_PIN_1
+#define PWMA_GPIO_Port GPIOA
 #define Key4_Pin GPIO_PIN_4
 #define Key4_GPIO_Port GPIOA
 #define Key3_Pin GPIO_PIN_5
@@ -83,6 +87,14 @@ void Error_Handler(void);
 #define MPU6050_SCL_GPIO_Port GPIOB
 #define MPU6050_SDA_Pin GPIO_PIN_11
 #define MPU6050_SDA_GPIO_Port GPIOB
+#define AIN1_Pin GPIO_PIN_12
+#define AIN1_GPIO_Port GPIOB
+#define AIN2_Pin GPIO_PIN_13
+#define AIN2_GPIO_Port GPIOB
+#define BIN1_Pin GPIO_PIN_14
+#define BIN1_GPIO_Port GPIOB
+#define BIN2_Pin GPIO_PIN_15
+#define BIN2_GPIO_Port GPIOB
 #define OLED_SCK_Pin GPIO_PIN_8
 #define OLED_SCK_GPIO_Port GPIOB
 #define OLED_SDA_Pin GPIO_PIN_9

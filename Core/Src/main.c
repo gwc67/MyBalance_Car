@@ -65,9 +65,9 @@ uint8_t flag;
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
 
@@ -94,15 +94,17 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   MX_TIM1_Init();
-
+  Servo_Init();
   Key_Init();
   Store_Init();
   OLED_Init();
   Menu_Init();
-
+  int8_t PWM = 0 ;
   LED1_OFF();
   /* USER CODE END 2 */
 
@@ -114,12 +116,43 @@ int main(void)
     OLED_Clear();
 
     // Menu_Choose();
+    if (Key_Check(KEY_1, KEY_DOWN))
+    {
+      PWM += 10;
+    }
+    else if (Key_Check(KEY_2, KEY_DOWN))
+    {
+      PWM -= 10;
+    }
+    else if (Key_Check(KEY_3, KEY_DOWN))
+    {
+        PWM = 100;
+    }
+    else if (Key_Check(KEY_4, KEY_DOWN))
+    {
+      PWM = 0;
+      //  AIN1(0);
+      //  AIN2(0);
+    }
 
-    OLED_Printf(0, 16, OLED_8X16, "X:%d", raw.AccX);
-    OLED_Printf(0, 32, OLED_8X16, "Y:%d", raw.AccY);
-    OLED_Printf(0, 48, OLED_8X16, "Z:%d", raw.AccZ);
-    OLED_Printf(16, 0, OLED_8X16, "%d %d", time1,TimeErrorFlag);
+    if (PWM > 100)
+    {
+      PWM = 100;
+    }
+    else if (PWM < -100)
+    {
+      PWM = -100;
+    }
+    
+    
+    OLED_Printf(0,0,OLED_8X16,"PWM:%d",PWM);
+    OLED_Printf(0,48,OLED_8X16,"%d",HAL_GPIO_ReadPin(AIN1_GPIO_Port,AIN1_Pin));
+    OLED_Printf(16,48,OLED_8X16,"%d",HAL_GPIO_ReadPin(AIN2_GPIO_Port,AIN2_Pin));
+    Servo_SetSpeed_left(PWM);
+    Servo_SetSpeed_right(PWM);
     // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
+    
+    
 
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
     OLED_Update();
@@ -132,17 +165,17 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -156,8 +189,9 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -174,9 +208,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -189,12 +223,12 @@ void Error_Handler(void)
 }
 #ifdef USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
