@@ -1,8 +1,10 @@
 #ifndef __ALL_H
 #define __ALL_H
 
+
 #include "stm32f103xb.h"
 
+#include "stm32f1xx_ll_tim.h"
 #include "MyI2C.h"
 #include "Key.h"
 #include "LED.h"
@@ -18,4 +20,5 @@
 #include "Uart.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stdarg.h"
+
 #endif

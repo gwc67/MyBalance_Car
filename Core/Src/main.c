@@ -58,6 +58,8 @@ MPU6050_raw raw;
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern uint16_t time1;
+extern uint8_t TimeErrorFlag;
 
 uint8_t flag;
 /* USER CODE END 0 */
@@ -92,9 +94,9 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  /* USER CODE BEGIN 2 */
   MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   MX_TIM1_Init();
-  /* USER CODE BEGIN 2 */
 
   Key_Init();
   Store_Init();
@@ -116,6 +118,7 @@ int main(void)
     OLED_Printf(0, 16, OLED_8X16, "X:%d", raw.AccX);
     OLED_Printf(0, 32, OLED_8X16, "Y:%d", raw.AccY);
     OLED_Printf(0, 48, OLED_8X16, "Z:%d", raw.AccZ);
+    OLED_Printf(16, 0, OLED_8X16, "%d %d", time1,TimeErrorFlag);
     // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
 
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());

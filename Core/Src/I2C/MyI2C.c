@@ -1,35 +1,36 @@
 #include "MyI2C.h"
+extern I2CBus_Struct MPU6050;
 
-static I2CBus_Struct *P_ThisBus;
-void Delay_us(uint32_t xus)
-{
-    SysTick->LOAD = 72 * xus;   // 设置定时器重装值
-    SysTick->VAL = 0x00;        // 清空当前计数值
-    SysTick->CTRL = 0x00000005; // 设置时钟源为HCLK，启动定时器
-    while (!(SysTick->CTRL & 0x00010000))
-        ;                       // 等待计数到0
-    SysTick->CTRL = 0x00000004; // 关闭定时器
-}
+static I2CBus_Struct *P_ThisBus = &MPU6050;
+// void Delay_us(uint32_t xus)
+// {
+//     SysTick->LOAD = 72 * xus;   // 设置定时器重装值
+//     SysTick->VAL = 0x00;        // 清空当前计数值
+//     SysTick->CTRL = 0x00000005; // 设置时钟源为HCLK，启动定时器
+//     while (!(SysTick->CTRL & 0x00010000))
+//         ;                       // 等待计数到0
+//     SysTick->CTRL = 0x00000004; // 关闭定时器
+// }
 #define I2C_SCL_Write(x) HAL_GPIO_WritePin(P_ThisBus->SCL_GPIO, P_ThisBus->SCL_Pin, (GPIO_PinState)x)
 #define I2C_SDA_Write(x) HAL_GPIO_WritePin(P_ThisBus->SDA_GPIO, P_ThisBus->SDA_Pin, (GPIO_PinState)x)
 #define I2C_SDA_Read() HAL_GPIO_ReadPin(P_ThisBus->SDA_GPIO, P_ThisBus->SDA_Pin)
-#define I2C_Delay(Time) Delay_us(Time)
+// #define I2C_Delay(Time) Delay_us(Time)
 
 inline static void SCL(uint8_t x)
 {
     I2C_SCL_Write(x);
-    I2C_Delay(P_ThisBus->Delay_Time);
+    // I2C_Delay(P_ThisBus->Delay_Time);
 }
 inline static void SDA(uint8_t x)
 {
     I2C_SDA_Write(x);
-    I2C_Delay(P_ThisBus->Delay_Time);
+    // I2C_Delay(P_ThisBus->Delay_Time);
 }
 
 inline static uint8_t SDA_Read()
 {
     uint8_t temp = I2C_SDA_Read();
-    I2C_Delay(P_ThisBus->Delay_Time);
+    // I2C_Delay(P_ThisBus->Delay_Time);
     return temp;
 }
 

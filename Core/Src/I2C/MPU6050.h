@@ -25,6 +25,7 @@ typedef struct MPU6050_raw
 }MPU6050_raw;
 
  
+extern MPU6050_raw raw;
 
 
 void MPU6050_Init();

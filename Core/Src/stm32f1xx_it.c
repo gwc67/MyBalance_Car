@@ -42,7 +42,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
-
+uint16_t time1;
+uint8_t TimeErrorFlag;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -210,7 +211,16 @@ void TIM1_UP_IRQHandler(void)
     LL_TIM_ClearFlag_UPDATE(TIM1);
     // Key_Tick();
     MPU6050_Get_Raw(&raw);
+    if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
+    {
+      TimeErrorFlag = 1;
+      LL_TIM_ClearFlag_UPDATE(TIM1);
+    }
+    
+    time1 =  LL_TIM_GetCounter(TIM1);
   }
+  
+  
   /* USER CODE END TIM1_UP_IRQn 0 */
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
