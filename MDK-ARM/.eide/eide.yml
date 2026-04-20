@@ -80,6 +80,8 @@ virtualFolder:
                   files:
                     - path: ../Core/Src/Usart/Uart.c
                     - path: ../Core/Src/Usart/Uart.h
+                    - path: ../Core/Src/Usart/BlueSerial.c
+                    - path: ../Core/Src/Usart/BlueSerial.h
                   folders: []
     - name: Drivers
       files:

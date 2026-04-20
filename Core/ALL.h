@@ -4,7 +4,8 @@
 
 #include "stm32f103xb.h"
 #include "Encode.h"
-
+#include "BlueSerial.h"
+#include "usart.h"
 #include "stm32f1xx_ll_tim.h"
 #include "MyI2C.h"
 #include "Key.h"

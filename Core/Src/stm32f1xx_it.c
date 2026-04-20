@@ -45,6 +45,9 @@
 uint16_t time1;
 uint8_t TimeErrorFlag;
 float SpeedL, SpeedR;
+char BlueSerial_RxPacket[100];
+uint8_t BlueSerial_RxFlag;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -67,8 +70,8 @@ float SpeedL, SpeedR;
 /*           Cortex-M3 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
- * @brief This function handles Non maskable interrupt.
- */
+  * @brief This function handles Non maskable interrupt.
+  */
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
@@ -82,8 +85,8 @@ void NMI_Handler(void)
 }
 
 /**
- * @brief This function handles Hard fault interrupt.
- */
+  * @brief This function handles Hard fault interrupt.
+  */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -97,8 +100,8 @@ void HardFault_Handler(void)
 }
 
 /**
- * @brief This function handles Memory management fault.
- */
+  * @brief This function handles Memory management fault.
+  */
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
@@ -112,8 +115,8 @@ void MemManage_Handler(void)
 }
 
 /**
- * @brief This function handles Prefetch fault, memory access fault.
- */
+  * @brief This function handles Prefetch fault, memory access fault.
+  */
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
@@ -127,8 +130,8 @@ void BusFault_Handler(void)
 }
 
 /**
- * @brief This function handles Undefined instruction or illegal state.
- */
+  * @brief This function handles Undefined instruction or illegal state.
+  */
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
@@ -142,8 +145,8 @@ void UsageFault_Handler(void)
 }
 
 /**
- * @brief This function handles System service call via SWI instruction.
- */
+  * @brief This function handles System service call via SWI instruction.
+  */
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -155,8 +158,8 @@ void SVC_Handler(void)
 }
 
 /**
- * @brief This function handles Debug monitor.
- */
+  * @brief This function handles Debug monitor.
+  */
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
@@ -168,8 +171,8 @@ void DebugMon_Handler(void)
 }
 
 /**
- * @brief This function handles Pendable request for system service.
- */
+  * @brief This function handles Pendable request for system service.
+  */
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -181,8 +184,8 @@ void PendSV_Handler(void)
 }
 
 /**
- * @brief This function handles System tick timer.
- */
+  * @brief This function handles System tick timer.
+  */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -202,11 +205,10 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
- * @brief This function handles TIM1 update interrupt.
- */
+  * @brief This function handles TIM1 update interrupt.
+  */
 void TIM1_UP_IRQHandler(void)
 {
-
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
   static uint16_t Count;
   if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
@@ -221,7 +223,7 @@ void TIM1_UP_IRQHandler(void)
 
     LL_TIM_ClearFlag_UPDATE(TIM1);
     Key_Tick();
-    MPU6050_Get_Raw(&raw);
+    // MPU6050_Get_Raw(&raw);
     if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
     {
       TimeErrorFlag = 1;
@@ -235,6 +237,51 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
   /* USER CODE END TIM1_UP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART2 global interrupt.
+  */
+void USART2_IRQHandler(void)
+{
+    /* USER CODE BEGIN USART1_IRQn 0 */
+    static uint8_t Rx_State;
+    static uint8_t P_RxPacket;
+
+    
+    if (LL_USART_IsActiveFlag_RXNE(USART2))
+    {
+        uint8_t RxData = LL_USART_ReceiveData8(USART2);
+
+        if (Rx_State == 0)
+        {
+            if (RxData == '[' && BlueSerial_RxFlag == 0)
+            {
+
+                Rx_State = 1;
+                P_RxPacket = 0;
+            }
+        }
+        else if (Rx_State == 1)
+        {
+            if (RxData == ']')
+            {
+                Rx_State = 0;
+                BlueSerial_RxPacket[P_RxPacket] = '\0';
+                BlueSerial_RxFlag = 1;
+            }
+            else
+            {
+                BlueSerial_RxPacket[P_RxPacket++] = RxData;
+            }
+        }
+        LL_USART_ClearFlag_RXNE(USART2);
+    }
+
+    /* USER CODE END USART1_IRQn 0 */
+    /* USER CODE BEGIN USART1_IRQn 1 */
+
+    /* USER CODE END USART1_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

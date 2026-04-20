@@ -95,9 +95,11 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   MX_TIM1_Init();
@@ -138,12 +140,21 @@ int main(void)
     }
 
     
-    OLED_Printf(0, 0, OLED_8X16, "PWM_l:%d", PWM1);
-    OLED_Printf(64, 0, OLED_8X16, "PWM_r:%d", PWM2);
-    OLED_Printf(0, 32, OLED_8X16, "left:%.2f", SpeedL);
-    OLED_Printf(0, 48, OLED_8X16, "right:%.2f", SpeedR);
-    Servo_SetSpeed_left(PWM1);
-    Servo_SetSpeed_right(PWM2);
+    if (BlueSerial_RxFlag == 1)
+    {
+      OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
+      BlueSerial_RxFlag = 0;
+    }
+      OLED_Printf(0,16,OLED_8X16,"%d",PWM1);
+    
+    
+    
+    
+    Serial_Printf("%d,%d\n",PWM1,PWM2);
+    // BlueSerial_Printf("%d,%d\n",PWM1,PWM2);
+    
+    // Servo_SetSpeed_left(PWM1);
+    // Servo_SetSpeed_right(PWM2);
     // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
 
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
