@@ -3,6 +3,7 @@
 
 
 #include "stm32f103xb.h"
+#include "Encode.h"
 
 #include "stm32f1xx_ll_tim.h"
 #include "MyI2C.h"
@@ -13,6 +14,7 @@
 #include "MENU.h"
 #include "OLED.h"
 #include "OLED_Data.h"
+#include "Servo.h"
 #include "Store.h"
 #include "stdbool.h"
 #include "stdio.h"

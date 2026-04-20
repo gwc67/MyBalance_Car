@@ -60,6 +60,7 @@ MPU6050_raw raw;
 /* USER CODE BEGIN 0 */
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
+extern float SpeedL ,SpeedR;
 
 uint8_t flag;
 /* USER CODE END 0 */
@@ -94,17 +95,20 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-  MX_TIM1_Init();
   MX_TIM2_Init();
+  MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
   MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   MX_TIM1_Init();
   Servo_Init();
   Key_Init();
+  Encode_Init();
   Store_Init();
   OLED_Init();
   Menu_Init();
-  int8_t PWM = 0 ;
+  int8_t PWM1 = 0;
+  int8_t PWM2 = 0;
   LED1_OFF();
   /* USER CODE END 2 */
 
@@ -118,41 +122,29 @@ int main(void)
     // Menu_Choose();
     if (Key_Check(KEY_1, KEY_DOWN))
     {
-      PWM += 10;
+      PWM1 += 10;
     }
     else if (Key_Check(KEY_2, KEY_DOWN))
     {
-      PWM -= 10;
+      PWM1 -= 10;
     }
     else if (Key_Check(KEY_3, KEY_DOWN))
     {
-        PWM = 100;
+      PWM2 += 10;
     }
     else if (Key_Check(KEY_4, KEY_DOWN))
     {
-      PWM = 0;
-      //  AIN1(0);
-      //  AIN2(0);
+      PWM2 -= 10;
     }
 
-    if (PWM > 100)
-    {
-      PWM = 100;
-    }
-    else if (PWM < -100)
-    {
-      PWM = -100;
-    }
     
-    
-    OLED_Printf(0,0,OLED_8X16,"PWM:%d",PWM);
-    OLED_Printf(0,48,OLED_8X16,"%d",HAL_GPIO_ReadPin(AIN1_GPIO_Port,AIN1_Pin));
-    OLED_Printf(16,48,OLED_8X16,"%d",HAL_GPIO_ReadPin(AIN2_GPIO_Port,AIN2_Pin));
-    Servo_SetSpeed_left(PWM);
-    Servo_SetSpeed_right(PWM);
+    OLED_Printf(0, 0, OLED_8X16, "PWM_l:%d", PWM1);
+    OLED_Printf(64, 0, OLED_8X16, "PWM_r:%d", PWM2);
+    OLED_Printf(0, 32, OLED_8X16, "left:%.2f", SpeedL);
+    OLED_Printf(0, 48, OLED_8X16, "right:%.2f", SpeedR);
+    Servo_SetSpeed_left(PWM1);
+    Servo_SetSpeed_right(PWM2);
     // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
-    
-    
 
     // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
     OLED_Update();

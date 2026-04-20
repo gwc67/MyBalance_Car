@@ -64,6 +64,10 @@ virtualFolder:
                     - path: ../Core/Src/OLED/OLED.h
                     - path: ../Core/Src/OLED/LED.c
                     - path: ../Core/Src/OLED/LED.h
+                    - path: ../Core/Src/OLED/Servo.c
+                    - path: ../Core/Src/OLED/Servo.h
+                    - path: ../Core/Src/OLED/Encode.c
+                    - path: ../Core/Src/OLED/Encode.h
                   folders: []
                 - name: I2C
                   files:
