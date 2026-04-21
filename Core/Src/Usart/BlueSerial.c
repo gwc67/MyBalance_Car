@@ -60,15 +60,58 @@ void BlueSerial_Printf(char *format, ...)
     BlueSerial_SendString(String); // 串口发送字符数组（字符串）
 }
 
+
+
+#define Blue_Serial_Max_Packet_Size 255
+// void BlueSerial_SendInt16(int16_t Data)
+// {
+//     uint8_t Packet[5];
+//     Packet[0] = 0xA5;
+//     Packet[1] = (uint8_t)(Data & 0xff);
+//     Packet[2] = (uint8_t)(Data >> 8);
+//     Packet[3] = (Packet[1] + Packet[2]) & 0xff; //校验和取低八位 
+//     Packet[4] = 0x5A;
+//     BlueSerial_SendArray(Packet,5);
+// }
+
+//不定长发送数组
+void BlueSerial_SendVaribleLength(uint8_t* Data,uint8_t length)
+{
+    if (!Data || length == 0 || length > Blue_Serial_Max_Packet_Size)
+    {
+        return;
+    }
+    uint8_t Packet[3 + Blue_Serial_Max_Packet_Size];
+
+    uint8_t checkSum = 0;
+    for (uint8_t i = 0; i < length; i++)
+    {
+        checkSum += Data[i];
+    }
+
+    uint8_t index = 0;
+    Packet[index++] = 0xA5;
+    memcpy(&Packet[index],Data,length);
+    index += length;
+    Packet[index++] = checkSum;
+    Packet[index] = 0x5A;
+
+    BlueSerial_SendArray(Packet,length+3);
+
+}
+void BlueSerial_SendInt16Array(int16_t* Data,uint8_t length)
+{
+    BlueSerial_SendVaribleLength((uint8_t*)Data,length * sizeof(int16_t));
+}
+
 // 记得把stm32_it.c里的那个去掉
 
 void USART2_IRQHandler(void)
 {
     /* USER CODE BEGIN USART1_IRQn 0 */
-    static uint8_t Rx_State ;
+    static uint8_t Rx_State;
     static uint8_t P_RxPacket;
 
-    
     if (LL_USART_IsActiveFlag_RXNE(MyUSART))
     {
         uint8_t RxData = LL_USART_ReceiveData8(MyUSART);

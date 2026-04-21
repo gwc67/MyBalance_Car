@@ -17,6 +17,11 @@ uint32_t BlueSerial_Pow(uint32_t X, uint32_t Y);
 void BlueSerial_SendNumber(uint32_t Number, uint8_t Length);
  
 void BlueSerial_Printf(char *format, ...);
- 
+// void BlueSerial_SendInt16(int16_t Data);
+void BlueSerial_SendVaribleLength(uint8_t* Data,uint8_t length);
+
+//使用方法 while循环下 int16_t gyro[3] = {raw.Accx,raw.Accy,raw.accz}
+void BlueSerial_SendInt16Array(int16_t* Data,uint8_t length);
+
 #endif
 

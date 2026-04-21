@@ -223,7 +223,7 @@ void TIM1_UP_IRQHandler(void)
 
     LL_TIM_ClearFlag_UPDATE(TIM1);
     Key_Tick();
-    // MPU6050_Get_Raw(&raw);
+    MPU6050_Get_Raw(&raw);
     if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
     {
       TimeErrorFlag = 1;

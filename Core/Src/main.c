@@ -110,59 +110,29 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
-  int8_t PWM1 = 0;
-  int8_t PWM2 = 0;
+ 
   LED1_OFF();
+  
   /* USER CODE END 2 */
-
+ 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
 
     OLED_Clear();
-
+    OLED_Printf(0,0,OLED_6X8,"x:%d,y:%d,z:%d",raw.AccX,raw.AccY,raw.AccZ);
     // Menu_Choose();
-    if (Key_Check(KEY_1, KEY_DOWN))
-    {
-      PWM1 += 10;
-    }
-    else if (Key_Check(KEY_2, KEY_DOWN))
-    {
-      PWM1 -= 10;
-    }
-    else if (Key_Check(KEY_3, KEY_DOWN))
-    {
-      PWM2 += 10;
-    }
-    else if (Key_Check(KEY_4, KEY_DOWN))
-    {
-      PWM2 -= 10;
-    }
+    HAL_Delay(10);
 
-    
-    if (BlueSerial_RxFlag == 1)
-    {
-      OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
-      BlueSerial_RxFlag = 0;
-      OLED_Update();
+    //acc必须在循环里定义，以便不停刷新；
+    int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
+    BlueSerial_SendInt16Array(acc,3);
+    Serial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
 
-    }
 
-      // OLED_Printf(0,16,OLED_8X16,"%d",PWM1);
-    
-    
-    
-    
-    Serial_Printf("%d,%d\n",PWM1,PWM2);
-    // BlueSerial_Printf("%d,%d\n",PWM1,PWM2);
-    
-    // Servo_SetSpeed_left(PWM1);
-    // Servo_SetSpeed_right(PWM2);
-    // Serial_Printf("%.2f,%.2f,%.2f\n",raw.pitch,raw.yaw,raw.roll);
-
-    // OLED_Printf(0, 0, OLED_8X16, "%d", I2C_SDA_Read());
-   
+    // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
+    OLED_Update();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
