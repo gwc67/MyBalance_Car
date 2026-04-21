@@ -132,6 +132,32 @@ virtualFolder:
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_i2c.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_tim.c
             - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_ll_usart.c
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.c
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_dma_ex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_exti.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_bus.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_cortex.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_dma.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_exti.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_gpio.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_pwr.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_rcc.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_system.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_tim.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_usart.h
+            - path: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_ll_utils.h
           folders: []
         - name: CMSIS
           files:

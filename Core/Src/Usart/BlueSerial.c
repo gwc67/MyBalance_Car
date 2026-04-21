@@ -2,6 +2,11 @@
 
 #define MyUSART USART2
 
+void BlueSerial_Init(void)
+{
+    LL_USART_EnableIT_RXNE(MyUSART);
+}
+
 void BlueSerial_SendByte_LL(uint8_t Byte)
 {
     LL_USART_TransmitData8(MyUSART, Byte);
@@ -57,4 +62,44 @@ void BlueSerial_Printf(char *format, ...)
 
 // 记得把stm32_it.c里的那个去掉
 
+void USART2_IRQHandler(void)
+{
+    /* USER CODE BEGIN USART1_IRQn 0 */
+    static uint8_t Rx_State ;
+    static uint8_t P_RxPacket;
 
+    
+    if (LL_USART_IsActiveFlag_RXNE(MyUSART))
+    {
+        uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
+
+        if (Rx_State == 0)
+        {
+            if (RxData == 0xA5 && BlueSerial_RxFlag == 0)
+            {
+
+                Rx_State = 1;
+                P_RxPacket = 0;
+            }
+        }
+        else if (Rx_State == 1)
+        {
+            if (RxData == 0x5A)
+            {
+                Rx_State = 0;
+                BlueSerial_RxPacket[P_RxPacket] = '\0';
+                BlueSerial_RxFlag = 1;
+            }
+            else
+            {
+                BlueSerial_RxPacket[P_RxPacket++] = RxData;
+            }
+        }
+        LL_USART_ClearFlag_RXNE(MyUSART);
+    }
+
+    /* USER CODE END USART1_IRQn 0 */
+    /* USER CODE BEGIN USART1_IRQn 1 */
+
+    /* USER CODE END USART1_IRQn 1 */
+}

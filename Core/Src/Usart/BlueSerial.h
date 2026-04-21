@@ -4,6 +4,7 @@
 
 extern char BlueSerial_RxPacket[100];
 extern uint8_t BlueSerial_RxFlag;
+void BlueSerial_Init(void);
 
 void BlueSerial_SendByte_LL(uint8_t Byte);
  

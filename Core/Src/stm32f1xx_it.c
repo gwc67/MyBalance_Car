@@ -242,47 +242,7 @@ void TIM1_UP_IRQHandler(void)
 /**
   * @brief This function handles USART2 global interrupt.
   */
-void USART2_IRQHandler(void)
-{
-    /* USER CODE BEGIN USART1_IRQn 0 */
-    static uint8_t Rx_State;
-    static uint8_t P_RxPacket;
 
-    
-    if (LL_USART_IsActiveFlag_RXNE(USART2))
-    {
-        uint8_t RxData = LL_USART_ReceiveData8(USART2);
-
-        if (Rx_State == 0)
-        {
-            if (RxData == '[' && BlueSerial_RxFlag == 0)
-            {
-
-                Rx_State = 1;
-                P_RxPacket = 0;
-            }
-        }
-        else if (Rx_State == 1)
-        {
-            if (RxData == ']')
-            {
-                Rx_State = 0;
-                BlueSerial_RxPacket[P_RxPacket] = '\0';
-                BlueSerial_RxFlag = 1;
-            }
-            else
-            {
-                BlueSerial_RxPacket[P_RxPacket++] = RxData;
-            }
-        }
-        LL_USART_ClearFlag_RXNE(USART2);
-    }
-
-    /* USER CODE END USART1_IRQn 0 */
-    /* USER CODE BEGIN USART1_IRQn 1 */
-
-    /* USER CODE END USART1_IRQn 1 */
-}
 
 /* USER CODE BEGIN 1 */
 
