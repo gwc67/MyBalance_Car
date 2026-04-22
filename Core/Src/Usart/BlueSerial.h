@@ -22,6 +22,7 @@ void BlueSerial_SendVaribleLength(uint8_t* Data,uint8_t length);
 
 //使用方法 while循环下 int16_t gyro[3] = {raw.Accx,raw.Accy,raw.accz}
 void BlueSerial_SendInt16Array(int16_t* Data,uint8_t length);
+void BlueSerial_SendFloatArray(float *data, uint8_t count);
 
 #endif
 

@@ -1,6 +1,9 @@
 #ifndef __ALL_H
 #define __ALL_H
 
+extern float AngleAcc;
+extern float AngleGyro;
+extern float Angle;
 
 #include "stm32f103xb.h"
 #include "Encode.h"

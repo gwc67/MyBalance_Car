@@ -121,13 +121,17 @@ int main(void)
   {
 
     OLED_Clear();
-    OLED_Printf(0,0,OLED_6X8,"x:%d,y:%d,z:%d",raw.AccX,raw.AccY,raw.AccZ);
+    OLED_Printf(0,0,OLED_6X8,"x:%d,y:%d,z:%d",raw.AccX,raw.GyroY,raw.AccZ);
+    OLED_Printf(0,16,OLED_6X8,"angleacc:%f",AngleAcc);
+    OLED_Printf(0,32,OLED_6X8,"anglegyro:%f",AngleGyro);
+    OLED_Printf(0,48,OLED_6X8,"angle:%f",Angle);
     // Menu_Choose();
-    HAL_Delay(10);
+
 
     //acc必须在循环里定义，以便不停刷新；
-    int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
-    BlueSerial_SendInt16Array(acc,3);
+    // int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
+    float angle[3] = {AngleAcc,AngleGyro,Angle};
+    BlueSerial_SendFloatArray(angle,3);
     Serial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
 
 

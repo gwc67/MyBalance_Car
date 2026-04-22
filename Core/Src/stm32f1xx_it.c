@@ -47,7 +47,9 @@ uint8_t TimeErrorFlag;
 float SpeedL, SpeedR;
 char BlueSerial_RxPacket[100];
 uint8_t BlueSerial_RxFlag;
-
+float AngleAcc;
+float AngleGyro;
+float Angle;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -224,6 +226,12 @@ void TIM1_UP_IRQHandler(void)
     LL_TIM_ClearFlag_UPDATE(TIM1);
     Key_Tick();
     MPU6050_Get_Raw(&raw);
+    raw.GyroY += 35;
+    AngleAcc = atan2(raw.AccX,raw.AccZ) / 3.14159 * 180;    
+    AngleGyro = Angle + raw.GyroY / 32768.0 * 500 * 0.001;
+
+    float Alpha = 0.001;
+    Angle = Alpha * AngleAcc + (1 -  Alpha) * AngleGyro;
     if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
     {
       TimeErrorFlag = 1;
