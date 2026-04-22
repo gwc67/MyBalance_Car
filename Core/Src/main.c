@@ -60,16 +60,18 @@ MPU6050_raw raw;
 /* USER CODE BEGIN 0 */
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
-extern float SpeedL ,SpeedR;
+extern float SpeedL, SpeedR;
 
 uint8_t flag;
 uint8_t RunFlag;
+int16_t LeftPwm, RightPwm;
+int16_t AvePwm, DifPwm;
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -111,10 +113,9 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
- 
-  
+
   /* USER CODE END 2 */
- 
+
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
@@ -127,30 +128,35 @@ int main(void)
     {
       LED1_ON();
     }
-    
-    if (Key_Check(KEY_1,KEY_SINGLE))
+
+    if (Key_Check(KEY_1, KEY_SINGLE))
     {
-      RunFlag =!RunFlag;
+      RunFlag = !RunFlag;
     }
-    
 
     OLED_Clear();
-    OLED_Printf(0,0,OLED_6X8,"runflag:%d",RunFlag);
-    OLED_Printf(0,16,OLED_6X8,"angleacc:%f",AngleAcc);
-    OLED_Printf(0,32,OLED_6X8,"anglegyro:%f",AngleGyro);
-    OLED_Printf(0,48,OLED_6X8,"angle:%f",Angle);
+    if (BlueSerial_RxFlag)
+    {
+
+      BlueSerial_RxFlag = 0;
+      OLED_Printf(0, 0, OLED_6X8, "kp:%f", FloatArray[0] / 1000.0);
+      OLED_Printf(0, 16, OLED_6X8, "ki:%f", FloatArray[1]/ 1000.0);
+      OLED_Printf(0, 32, OLED_6X8, "kd:%f", FloatArray[2] / 1000.0);
+      // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
+      OLED_Update();
+    }
+
+
     // Menu_Choose();
 
-
-    //acc必须在循环里定义，以便不停刷新；
-    // int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
-    float angle[3] = {AngleAcc,AngleGyro,Angle};
-    BlueSerial_SendFloatArray(angle,3);
-    Serial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
-
+    // acc必须在循环里定义，以便不停刷新；
+    //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
+    //  float angle[3] = {AngleAcc,AngleGyro,Angle};
+    //  BlueSerial_SendFloatArray(angle,3);
+    Serial_Printf("%d,%d,%d\n", raw.AccX, raw.AccY, raw.AccZ);
 
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
-    OLED_Update();
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -159,17 +165,17 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -183,9 +189,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -202,9 +207,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -217,12 +222,12 @@ void Error_Handler(void)
 }
 #ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

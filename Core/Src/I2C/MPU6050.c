@@ -90,7 +90,7 @@ typedef struct MPU6050_InitTypeDef
 
 static float gyroScale = 1 /65.5  ;  // 角速度量程250°/s→131，500°/s→65.5，1000°/s→32.8，2000°/s→16.4
 static float accelScale = 1.0f /  4096; // 加速度计量程2g→16384，4g→8192，8g→4096，16g→2048
-static float mpu6050_dt =0.001f; // 采样时间间隔(s)
+static float mpu6050_dt =0.01f; // 采样时间间隔(s)
 static float angle_yaw   = 0;
 static float angle_roll  = 0;
 static float angle_pitch = 0;
@@ -110,13 +110,6 @@ void MPU6050_Register_Init(MPU6050_InitTypeDef *MPU6050_StructureInit)
 void MPU6050_Get_Raw(MPU6050_raw *this)
 {
 
-    // this->AccX = ((int16_t)(MPU6050_READ_REG(MPU6050_ACCEL_XOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_ACCEL_XOUT_L);
-    // this->AccY = ((int16_t)(MPU6050_READ_REG(MPU6050_ACCEL_YOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_ACCEL_YOUT_L);
-    // this->AccZ = ((int16_t)(MPU6050_READ_REG(MPU6050_ACCEL_ZOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_ACCEL_ZOUT_L);
-    // this->Temp = ((uint16_t)(MPU6050_READ_REG(MPU6050_TEMP_OUT_H)) << 8) | MPU6050_READ_REG(MPU6050_TEMP_OUT_L);
-    // this->GyroX = ((int16_t)(MPU6050_READ_REG(MPU6050_GYRO_XOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_GYRO_XOUT_L);
-    // this->GyroY = ((int16_t)(MPU6050_READ_REG(MPU6050_GYRO_YOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_GYRO_YOUT_L);
-    // this->GyroZ = ((int16_t)(MPU6050_READ_REG(MPU6050_GYRO_ZOUT_H)) << 8) | MPU6050_READ_REG(MPU6050_GYRO_ZOUT_L);
     uint8_t temp_buffer[14];
     MPU6050_READ_REG_CONTINUE(MPU6050_ACCEL_XOUT_H,14,temp_buffer);
     this->AccX    = ((int16_t)temp_buffer[0] << 8) | temp_buffer[1];
@@ -140,8 +133,8 @@ void MPU6050_Init(GPIO_TypeDef *SCL_Port, uint16_t SCL_Pin, GPIO_TypeDef *SDA_Po
 {
     MyI2C_Init(&MPU6050, SCL_Port, SCL_Pin, SDA_Port, SDA_Pin, MPU6050_ADDRESS, 20);
     MPU6050_InitTypeDef MPU6050_Structure_init;
-    MPU6050_Structure_init.SMPLRT_DIV = 1;
-    MPU6050_Structure_init.Filiter = Band_186HZ;
+    MPU6050_Structure_init.SMPLRT_DIV = 7;
+    MPU6050_Structure_init.Filiter = Band_256HZ;
     MPU6050_Structure_init.gyro_range = gyro_500;
     MPU6050_Structure_init.acc_range = acc_8g;
     MPU6050_Structure_init.FIFO_EN = FIFO_Disable;

@@ -1,9 +1,14 @@
 #ifndef __BLUESERIAL_H
 #define __BLUESERIAL_H
 #include "ALL.h"
+#if !receive_str
+#define MAX_FLOAT_COUNT 10
+extern float FloatArray[MAX_FLOAT_COUNT];
+#else
 
-extern char BlueSerial_RxPacket[100];
+#endif
 extern uint8_t BlueSerial_RxFlag;
+extern uint8_t BlueSerial_RxPacket[100];
 void BlueSerial_Init(void);
 
 void BlueSerial_SendByte_LL(uint8_t Byte);

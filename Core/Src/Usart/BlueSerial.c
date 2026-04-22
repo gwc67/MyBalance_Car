@@ -1,4 +1,7 @@
 #include "BlueSerial.h"
+#define receive_str 0 // 接受字符 还是接受 float
+
+uint8_t BlueSerial_RxFlag;
 
 #define MyUSART USART2
 void BlueSerial_Init(void)
@@ -119,10 +122,26 @@ void BlueSerial_SendFloatArray(float *data, uint8_t count)
             uint8_t Data[4];
         } convert;
         convert.f = data[i];
-        memcpy(&buffer[i * 4],convert.Data,4);
+        memcpy(&buffer[i * 4], convert.Data, 4);
     }
-    BlueSerial_SendVaribleLength(buffer,total_bytes);
+    BlueSerial_SendVaribleLength(buffer, total_bytes);
 }
+
+uint8_t BlueSerial_RxPacket[100];
+
+#if !receive_str
+float FloatArray[MAX_FLOAT_COUNT];
+uint8_t float_count;
+// static uint8_t Check = 0; // 校验和累加值
+typedef union
+{
+    float f;
+    uint8_t Data[4];
+} FloatUnion;
+
+#else
+#endif
+
 void USART2_IRQHandler(void)
 {
     /* USER CODE BEGIN USART1_IRQn 0 */
@@ -132,14 +151,18 @@ void USART2_IRQHandler(void)
     if (LL_USART_IsActiveFlag_RXNE(MyUSART))
     {
         uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
-
+        LL_USART_ClearFlag_RXNE(MyUSART);
         if (Rx_State == 0)
         {
-            if (RxData == 0xA5 && BlueSerial_RxFlag == 0)
+            if (RxData == 0xA5)
             {
-
                 Rx_State = 1;
                 P_RxPacket = 0;
+#if receive_str
+
+#else
+                Check = 0;
+#endif
             }
         }
         else if (Rx_State == 1)
@@ -147,19 +170,46 @@ void USART2_IRQHandler(void)
             if (RxData == 0x5A)
             {
                 Rx_State = 0;
+#if receive_str
                 BlueSerial_RxPacket[P_RxPacket] = '\0';
+#else
+                // uint8_t receive_check = BlueSerial_RxPacket[P_RxPacket - 1];
+
+                // if (receive_check == Check)
+                // {
+                uint8_t data_len = P_RxPacket;
+                float_count = data_len / 4;
+                for (int i = 0; i < float_count; i++)
+                {
+                    FloatUnion convert;
+                    convert.Data[0] = BlueSerial_RxPacket[i * 4];
+                    convert.Data[1] = BlueSerial_RxPacket[i * 4 + 1];
+                    convert.Data[2] = BlueSerial_RxPacket[i * 4 + 2];
+                    convert.Data[3] = BlueSerial_RxPacket[i * 4 + 3];
+                    FloatArray[i]  = convert.f;
+                    BlueSerial_SendFloatArray(&FloatArray[i], 1);
+                }
+                // }
+
+#endif
                 BlueSerial_RxFlag = 1;
             }
             else
             {
+
                 BlueSerial_RxPacket[P_RxPacket++] = RxData;
+#if receive_str
+
+#else
+                // Check += RxData;
+
+#endif
             }
+
+            /* USER CODE END USART1_IRQn 0 */
+            /* USER CODE BEGIN USART1_IRQn 1 */
+
+            /* USER CODE END USART1_IRQn 1 */
         }
-        LL_USART_ClearFlag_RXNE(MyUSART);
     }
-
-    /* USER CODE END USART1_IRQn 0 */
-    /* USER CODE BEGIN USART1_IRQn 1 */
-
-    /* USER CODE END USART1_IRQn 1 */
 }
