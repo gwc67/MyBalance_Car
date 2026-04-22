@@ -4,7 +4,6 @@
 extern float AngleAcc;
 extern float AngleGyro;
 extern float Angle;
-
 #include "stm32f103xb.h"
 #include "Encode.h"
 #include "BlueSerial.h"
@@ -26,5 +25,6 @@ extern float Angle;
 #include "Uart.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stdarg.h"
+extern uint8_t RunFlag;
 
 #endif

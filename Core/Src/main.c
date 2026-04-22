@@ -63,6 +63,7 @@ extern uint8_t TimeErrorFlag;
 extern float SpeedL ,SpeedR;
 
 uint8_t flag;
+uint8_t RunFlag;
 /* USER CODE END 0 */
 
 /**
@@ -111,7 +112,6 @@ int main(void)
   OLED_Init();
   Menu_Init();
  
-  LED1_OFF();
   
   /* USER CODE END 2 */
  
@@ -119,9 +119,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    if (RunFlag)
+    {
+      LED1_OFF();
+    }
+    else
+    {
+      LED1_ON();
+    }
+    
+    if (Key_Check(KEY_1,KEY_SINGLE))
+    {
+      RunFlag =!RunFlag;
+    }
+    
 
     OLED_Clear();
-    OLED_Printf(0,0,OLED_6X8,"x:%d,y:%d,z:%d",raw.AccX,raw.GyroY,raw.AccZ);
+    OLED_Printf(0,0,OLED_6X8,"runflag:%d",RunFlag);
     OLED_Printf(0,16,OLED_6X8,"angleacc:%f",AngleAcc);
     OLED_Printf(0,32,OLED_6X8,"anglegyro:%f",AngleGyro);
     OLED_Printf(0,48,OLED_6X8,"angle:%f",Angle);

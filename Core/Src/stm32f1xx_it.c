@@ -232,6 +232,11 @@ void TIM1_UP_IRQHandler(void)
 
     float Alpha = 0.001;
     Angle = Alpha * AngleAcc + (1 -  Alpha) * AngleGyro;
+    if (Angle > 50 || Angle < -50)
+    {
+        RunFlag = 0;  
+    }
+    
     if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
     {
       TimeErrorFlag = 1;
