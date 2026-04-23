@@ -66,6 +66,8 @@ uint8_t flag;
 uint8_t RunFlag;
 int16_t LeftPwm, RightPwm;
 int16_t AvePwm, DifPwm;
+int8_t pwm = 0;
+
 /* USER CODE END 0 */
 
 /**
@@ -113,7 +115,6 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
-  int8_t pwm = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -129,21 +130,26 @@ int main(void)
       LED1_ON();
     }
 
-    if (Key_Check(KEY_1, KEY_SINGLE))
+    if (Key_Check(KEY_3, KEY_SINGLE))
     {
-      RunFlag = !RunFlag;
+      pwm += 10;
     }
-    else if (Key_Check(KEY_2,KEY_SINGLE))
+    else if (Key_Check(KEY_1, KEY_SINGLE))
     {
       pwm++;
     }
-    else if (Key_Check(KEY_3,KEY_SINGLE))
+    else if (Key_Check(KEY_2, KEY_SINGLE))
     {
       pwm--;
     }
-    Servo_SetSpeed_right(pwm);
+    else if (Key_Check(KEY_4, KEY_SINGLE))
+    {
+      pwm = 0;
+    }
 
-    OLED_Clear();
+    Servo_SetSpeed_left(pwm);
+
+    // OLED_Clear();
     if (BlueSerial_RxFlag)
     {
 
@@ -155,14 +161,14 @@ int main(void)
 
       // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
     }
-    OLED_Printf(0, 8, OLED_6X8, "p:%.2f", AnglePID.Kp);
-    OLED_Printf(0, 16, OLED_6X8, "i:%.2f", AnglePID.Ki);
-    OLED_Printf(0, 24, OLED_6X8, "d:%.2f", AnglePID.Kd);
-    OLED_Printf(0, 32, OLED_6X8, "T:%.2f", AnglePID.Target);
-    OLED_Printf(0, 40, OLED_6X8, "A:%.2f", Angle);
-    OLED_Printf(0, 48, OLED_6X8, "O:%.2f", AnglePID.Out);
-    OLED_Printf(0, 56,OLED_6X8,"%d",pwm);
-    OLED_Update();
+    // OLED_Printf(0, 8, OLED_6X8, "p:%.2f", AnglePID.Kp);
+    // OLED_Printf(0, 16, OLED_6X8, "i:%.2f", AnglePID.Ki);
+    // OLED_Printf(0, 24, OLED_6X8, "d:%.2f", AnglePID.Kd);
+    // OLED_Printf(0, 32, OLED_6X8, "T:%.2f", AnglePID.Target);
+    // OLED_Printf(0, 40, OLED_6X8, "A:%.2f", Angle);
+    // OLED_Printf(0, 48, OLED_6X8, "O:%.2f", AnglePID.Out);
+    // OLED_Printf(0, 48, OLED_8X16, "%d", pwm);
+    // OLED_Update();
     // Menu_Choose();
 
     // acc必须在循环里定义，以便不停刷新；
@@ -171,7 +177,7 @@ int main(void)
     //  BlueSerial_SendFloatArray(angle,3);
     // Serial_Printf("%d,%d,%d\n", raw.AccX, raw.AccY, raw.AccZ);
 
-    // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
+    BlueSerial_Printf("%d\n",pwm);
 
     /* USER CODE END WHILE */
 
