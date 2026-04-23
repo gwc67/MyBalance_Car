@@ -231,9 +231,9 @@ void TIM1_UP_IRQHandler(void)
       MPU6050_Get_Raw(&raw);
       raw.GyroY += 35;
       AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
-      AngleGyro = Angle + raw.GyroY / 32768.0 * 500 * 0.01;
+      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.01;
 
-      float Alpha = 0.01;
+      float Alpha = 0.1;
       Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
       // SpeedL = Encode_Get_B() / 0.05 / 44 / 20;
       // SpeedR = Encode_Get_A() / 0.05 / 44 / 20;
@@ -275,10 +275,10 @@ void TIM1_UP_IRQHandler(void)
 
     Key_Tick();
 
-    if (Angle > 50 || Angle < -50)
-    {
-      RunFlag = 0;
-    }
+    // if (Angle > 50 || Angle < -50)
+    // {
+    //   RunFlag = 0;
+    // }
 
     LL_TIM_ClearFlag_UPDATE(TIM1);
     // if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)

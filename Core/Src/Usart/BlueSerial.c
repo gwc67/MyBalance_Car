@@ -151,7 +151,6 @@ void USART2_IRQHandler(void)
     if (LL_USART_IsActiveFlag_RXNE(MyUSART))
     {
         uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
-        LL_USART_ClearFlag_RXNE(MyUSART);
         if (Rx_State == 0)
         {
             if (RxData == 0xA5)
@@ -161,7 +160,7 @@ void USART2_IRQHandler(void)
 #if receive_str
 
 #else
-                Check = 0;
+                // Check = 0;
 #endif
             }
         }
@@ -211,5 +210,6 @@ void USART2_IRQHandler(void)
 
             /* USER CODE END USART1_IRQn 1 */
         }
+        LL_USART_ClearFlag_RXNE(MyUSART);
     }
 }

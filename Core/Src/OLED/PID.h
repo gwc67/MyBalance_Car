@@ -60,5 +60,5 @@ typedef struct PID_t
 }PID_t;
 
 void PID_Update(PID_t* p);
-
+extern PID_t AnglePID ;
 #endif

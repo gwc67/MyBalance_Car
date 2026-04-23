@@ -113,7 +113,7 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
-
+  int8_t pwm = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -133,30 +133,46 @@ int main(void)
     {
       RunFlag = !RunFlag;
     }
+    else if (Key_Check(KEY_2,KEY_SINGLE))
+    {
+      pwm++;
+    }
+    else if (Key_Check(KEY_3,KEY_SINGLE))
+    {
+      pwm--;
+    }
+    Servo_SetSpeed_right(pwm);
 
     OLED_Clear();
     if (BlueSerial_RxFlag)
     {
 
       BlueSerial_RxFlag = 0;
-      OLED_Printf(0, 0, OLED_6X8, "kp:%f", FloatArray[0] / 1000.0);
-      OLED_Printf(0, 16, OLED_6X8, "ki:%f", FloatArray[1]/ 1000.0);
-      OLED_Printf(0, 32, OLED_6X8, "kd:%f", FloatArray[2] / 1000.0);
+      AnglePID.Kp = FloatArray[0];
+      AnglePID.Ki = FloatArray[1];
+      AnglePID.Kd = FloatArray[2];
+      AnglePID.Target = FloatArray[3];
+
       // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
-      OLED_Update();
     }
-
-
+    OLED_Printf(0, 8, OLED_6X8, "p:%.2f", AnglePID.Kp);
+    OLED_Printf(0, 16, OLED_6X8, "i:%.2f", AnglePID.Ki);
+    OLED_Printf(0, 24, OLED_6X8, "d:%.2f", AnglePID.Kd);
+    OLED_Printf(0, 32, OLED_6X8, "T:%.2f", AnglePID.Target);
+    OLED_Printf(0, 40, OLED_6X8, "A:%.2f", Angle);
+    OLED_Printf(0, 48, OLED_6X8, "O:%.2f", AnglePID.Out);
+    OLED_Printf(0, 56,OLED_6X8,"%d",pwm);
+    OLED_Update();
     // Menu_Choose();
 
     // acc必须在循环里定义，以便不停刷新；
     //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
     //  float angle[3] = {AngleAcc,AngleGyro,Angle};
     //  BlueSerial_SendFloatArray(angle,3);
-    Serial_Printf("%d,%d,%d\n", raw.AccX, raw.AccY, raw.AccZ);
+    // Serial_Printf("%d,%d,%d\n", raw.AccX, raw.AccY, raw.AccZ);
 
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
-    
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
