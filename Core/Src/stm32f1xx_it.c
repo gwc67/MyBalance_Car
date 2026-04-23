@@ -225,13 +225,13 @@ void TIM1_UP_IRQHandler(void)
   if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
     Count++;
-    if (Count > 10)
+    if (Count > 5)
     {
       Count = 0;
       MPU6050_Get_Raw(&raw);
       raw.GyroY += 35;
       AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
-      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.01;
+      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
 
       float Alpha = 0.1;
       Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
@@ -245,7 +245,23 @@ void TIM1_UP_IRQHandler(void)
         // 当DifPwm大于0时 小车右转
         LeftPwm = AvePwm + DifPwm / 2;
         RightPwm = AvePwm - DifPwm / 2;
-
+        if ( LeftPwm > 0&& LeftPwm < 10)
+        {
+          LeftPwm = 10;
+        }
+        else if ( LeftPwm < 0&& LeftPwm > -10)
+        {
+          LeftPwm = -10;
+        }
+        if ( RightPwm > 0&& RightPwm < 10)
+        {
+          RightPwm = 10;
+        }
+        else if ( RightPwm < 0&& RightPwm > -10)
+        {
+          RightPwm = -10;
+        }
+                
         if (LeftPwm > 100)
         {
           LeftPwm = 100;
@@ -275,10 +291,10 @@ void TIM1_UP_IRQHandler(void)
 
     Key_Tick();
 
-    // if (Angle > 50 || Angle < -50)
-    // {
-    //   RunFlag = 0;
-    // }
+    if (Angle > 50 || Angle < -50)
+    {
+      RunFlag = 0;
+    }
 
     LL_TIM_ClearFlag_UPDATE(TIM1);
     // if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
