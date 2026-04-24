@@ -88,9 +88,9 @@ typedef struct MPU6050_InitTypeDef
 } MPU6050_InitTypeDef;
 
 
-static float gyroScale = 1 /65.5  ;  // 角速度量程250°/s→131，500°/s→65.5，1000°/s→32.8，2000°/s→16.4
-static float accelScale = 1.0f /  4096; // 加速度计量程2g→16384，4g→8192，8g→4096，16g→2048
-static float mpu6050_dt =0.01f; // 采样时间间隔(s)
+static float gyroScale = 1 /16.4  ;  // 角速度量程250°/s→131，500°/s→65.5，1000°/s→32.8，2000°/s→16.4
+static float accelScale = 1.0f /  2048; // 加速度计量程2g→16384，4g→8192，8g→4096，16g→2048
+static float mpu6050_dt =0.005f; // 采样时间间隔(s)
 static float angle_yaw   = 0;
 static float angle_roll  = 0;
 static float angle_pitch = 0;
@@ -167,10 +167,10 @@ void MPU6050_Get_Angle(MPU6050_raw *this)
     float weight;
     if (absAcc > 1.2) {
         // 快速运动或剧烈振动状态，减小加速度计权重
-        weight = 0.8f;
+        weight = 0.5f;
     } else {
         // 正常运动状态，强烈信任加速度计
-        weight = 0.98f;
+        weight = 0.5;
     }
 
     static float Gyroscope_roll  = 0.0f;

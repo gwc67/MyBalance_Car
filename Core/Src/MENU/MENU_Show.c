@@ -49,7 +49,7 @@ void Menu_Init(void)
     dynamicCreate_Menu_Number(&head, "Ki", &AnglePID.Ki, float_Box);
     dynamicCreate_Menu_Number(&head, "Kd", &AnglePID.Kd, float_Box);
     dynamicCreate_Menu_Number(&head, "Target", &AnglePID.Target, float_Box);
-    dynamicCreate_Menu_Number(&head, "actual", &Angle , float_Box);
+    dynamicCreate_Menu_Number(&head, "actual", &raw.pitch , float_Box);
     dynamicCreate_Menu_Number(&head, "out", &AnglePID.Out , float_Box);
     Circle_Menu(&head);
 

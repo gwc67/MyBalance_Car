@@ -47,9 +47,9 @@ uint8_t TimeErrorFlag;
 float SpeedL, SpeedR;
 extern uint8_t BlueSerial_RxPacket[100];
 extern uint8_t BlueSerial_RxFlag;
-float AngleAcc;
-float AngleGyro;
-float Angle;
+// float AngleAcc;
+// float AngleGyro;
+// float Angle;
 PID_t AnglePID = {
     .Kd = 0,
     .Ki = 0,
@@ -217,6 +217,12 @@ void SysTick_Handler(void)
 /**
  * @brief This function handles TIM1 update interrupt.
  */
+int Vertical(float expectAngle,float actualAngle,float gyro_y)
+{
+	int temp;
+	temp = AnglePID.Kp*(actualAngle-expectAngle)+AnglePID.Kd*gyro_y;
+	return temp;
+}
 void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
@@ -228,17 +234,19 @@ void TIM1_UP_IRQHandler(void)
     if (Count > 5)
     {
       Count = 0;
-      MPU6050_Get_Raw(&raw);
-      // raw.GyroY += 35;
-      AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
-      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
+      // MPU6050_Get_Raw(&raw);
+      // // raw.GyroY += 35;
+      // AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
+      // AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
 
-      float Alpha = 0.05;
-      Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
+      // float Alpha = 0.05;
+      // Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
+      // MPU6050_Get_Angle(&raw);
+      mpu_dmp_get_data(&raw.pitch,&raw.roll,&raw.yaw);
 
       if (RunFlag)
       {
-        AnglePID.Actual = Angle;
+        AnglePID.Actual = raw.pitch;
         PID_Update(&AnglePID);
         AvePwm = AnglePID.Out;
         // 当DifPwm大于0时 小车右转
@@ -290,7 +298,7 @@ void TIM1_UP_IRQHandler(void)
 
     Key_Tick();
 
-    if (Angle > 70 || Angle < -70)
+    if ( raw.pitch > 70 ||   raw.pitch< -70)
     {
       RunFlag = 0;
     }

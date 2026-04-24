@@ -77,6 +77,12 @@ virtualFolder:
                     - path: ../Core/Src/I2C/MPU6050.h
                     - path: ../Core/Src/I2C/MPU6050.c
                     - path: ../Core/Src/I2C/MyI2C.h
+                    - path: ../Core/Src/I2C/dmpKey.h
+                    - path: ../Core/Src/I2C/dmpmap.h
+                    - path: ../Core/Src/I2C/inv_mpu.c
+                    - path: ../Core/Src/I2C/inv_mpu.h
+                    - path: ../Core/Src/I2C/inv_mpu_dmp_motion_driver.c
+                    - path: ../Core/Src/I2C/inv_mpu_dmp_motion_driver.h
                   folders: []
                 - name: USART
                   files:

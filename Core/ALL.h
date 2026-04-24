@@ -1,9 +1,9 @@
 #ifndef __ALL_H
 #define __ALL_H
 
-extern float AngleAcc;
-extern float AngleGyro;
-extern float Angle;
+// extern float AngleAcc;
+// extern float AngleGyro;
+// extern float Angle;
 #include "stm32f103xb.h"
 #include "Encode.h"
 #include "BlueSerial.h"
@@ -26,6 +26,8 @@ extern float Angle;
 #include "stm32f1xx_ll_gpio.h"
 #include "stdarg.h"
 #include "PID.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
 extern uint8_t RunFlag;
 extern int16_t LeftPwm,RightPwm;
 extern int16_t AvePwm,DifPwm; 
