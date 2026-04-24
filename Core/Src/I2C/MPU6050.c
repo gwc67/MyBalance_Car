@@ -133,10 +133,10 @@ void MPU6050_Init(GPIO_TypeDef *SCL_Port, uint16_t SCL_Pin, GPIO_TypeDef *SDA_Po
 {
     MyI2C_Init(&MPU6050, SCL_Port, SCL_Pin, SDA_Port, SDA_Pin, MPU6050_ADDRESS, 20);
     MPU6050_InitTypeDef MPU6050_Structure_init;
-    MPU6050_Structure_init.SMPLRT_DIV = 1;
+    MPU6050_Structure_init.SMPLRT_DIV = 7;
     MPU6050_Structure_init.Filiter = Band_256HZ;
     MPU6050_Structure_init.gyro_range = gyro_2000;
-    MPU6050_Structure_init.acc_range = acc_8g;
+    MPU6050_Structure_init.acc_range = acc_16g;
     MPU6050_Structure_init.FIFO_EN = FIFO_Disable;
 
     MPU6050_Register_Init(&MPU6050_Structure_init);

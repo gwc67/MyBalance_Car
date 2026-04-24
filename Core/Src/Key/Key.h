@@ -37,7 +37,7 @@
 #define KEY_REPEAT          (0x01 << 6)
 
 
-#define KEY_TIME_DOUBLE     0
+#define KEY_TIME_DOUBLE     200
 #define KEY_TIME_LONG       2000
 #define KEY_TIME_REPEAT     100
 

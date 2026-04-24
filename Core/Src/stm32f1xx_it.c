@@ -229,14 +229,13 @@ void TIM1_UP_IRQHandler(void)
     {
       Count = 0;
       MPU6050_Get_Raw(&raw);
-      raw.GyroY += 35;
+      // raw.GyroY += 35;
       AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
       AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
 
-      float Alpha = 0.1;
+      float Alpha = 0.05;
       Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
-      // SpeedL = Encode_Get_B() / 0.05 / 44 / 20;
-      // SpeedR = Encode_Get_A() / 0.05 / 44 / 20;
+
       if (RunFlag)
       {
         AnglePID.Actual = Angle;
@@ -245,22 +244,22 @@ void TIM1_UP_IRQHandler(void)
         // 当DifPwm大于0时 小车右转
         LeftPwm = AvePwm + DifPwm / 2;
         RightPwm = AvePwm - DifPwm / 2;
-        if ( LeftPwm > 0&& LeftPwm < 10)
-        {
-          LeftPwm = 10;
-        }
-        else if ( LeftPwm < 0&& LeftPwm > -10)
-        {
-          LeftPwm = -10;
-        }
-        if ( RightPwm > 0&& RightPwm < 10)
-        {
-          RightPwm = 10;
-        }
-        else if ( RightPwm < 0&& RightPwm > -10)
-        {
-          RightPwm = -10;
-        }
+        // if ( LeftPwm > 0&& LeftPwm < 10)
+        // {
+        //   LeftPwm = 10;
+        // }
+        // else if ( LeftPwm < 0&& LeftPwm > -10)
+        // {
+        //   LeftPwm = -10;
+        // }
+        // if ( RightPwm > 0&& RightPwm < 10)
+        // {
+        //   RightPwm = 10;
+        // }
+        // else if ( RightPwm < 0&& RightPwm > -10)
+        // {
+        //   RightPwm = -10;
+        // }
                 
         if (LeftPwm > 100)
         {
@@ -291,7 +290,7 @@ void TIM1_UP_IRQHandler(void)
 
     Key_Tick();
 
-    if (Angle > 50 || Angle < -50)
+    if (Angle > 70 || Angle < -70)
     {
       RunFlag = 0;
     }

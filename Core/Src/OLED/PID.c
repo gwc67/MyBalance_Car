@@ -8,22 +8,29 @@ void PID_Update(PID_t *p)
 
     if (p->Ki != 0)
     {
-        p->ErrorInt += p->Error0;
+        if (fabs(p->ErrorInt) < 600)
+        {
+            p->ErrorInt += p->Error0;
+        }
+        else
+        {
+            p->ErrorInt = 600;
+        }
     }
     else
     {
         p->ErrorInt = 0;
     }
-    if (p->ErrorInt > 500)
-    {
-        p->ErrorInt = 500;
-    }
-    else if (p->ErrorInt < -500)
-    {
-        p->ErrorInt = -500;
-    }
-    p->Out = p->Kp * p->Error0 + p->Ki * p->ErrorInt + p->Kd * (p->Error0 - p->Error1);
 
+    p->Out = p->Kp * p->Error0 + p->Ki * p->ErrorInt + p->Kd * (p->Error0 - p->Error1);
+    if (p->Out > 0 || p->Out < 6)
+    {
+        p->Out +=2;
+    }
+    if (p->Out < 0 || p->Out > -6)
+    {
+        p->Out -= 2;
+    }
     if (p->Out > p->OutMax)
     {
         p->Out = p->OutMax;

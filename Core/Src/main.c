@@ -131,7 +131,7 @@ int main(void)
     }
 
     
-    if (Key_Check(KEY_1, KEY_SINGLE))
+    if (Key_Check(KEY_1, KEY_DOUBLE))
     {
       RunFlag = !RunFlag;
     }
@@ -147,16 +147,9 @@ int main(void)
       
       // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
     }
-    // OLED_Printf(0, 8, OLED_6X8, "p:%.2f", AnglePID.Kp);
-    // OLED_Printf(0, 16, OLED_6X8, "i:%.2f", AnglePID.Ki);
-    // OLED_Printf(0, 24, OLED_6X8, "d:%.2f", AnglePID.Kd);
-    // OLED_Printf(0, 32, OLED_6X8, "T:%.2f", AnglePID.Target);
-    // OLED_Printf(0, 40, OLED_6X8, "A:%.2f", Angle);
-    // OLED_Printf(0, 48, OLED_6X8, "O:%.2f", AnglePID.Out);
-    // OLED_Printf(0, 48, OLED_8X16, "%d", pwm);
+     
     OLED_Clear();
-    // Menu_Choose();
-    OLED_Printf(0,0,OLED_8X16,"%f",Angle);
+    Menu_Choose();
     OLED_Update();
     // acc????????????????
     //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};

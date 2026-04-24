@@ -30,11 +30,8 @@ static float SetupNumber[SETUP_LEN] = {0.001, 0.01, 0.1, 1, 10, 100, 1000};
 static uint8_t SetupIndex = 3;
 uint8_t Setup_mode = 0;
 
-int test = 10;
-float test1 = 2.2;
-bool test2 = false;
-float test3 = 3.3;
-float test4 = 3.5;
+
+
 void Menu_Init(void)
 { // metamorphosis
     head.data = NULL;
@@ -46,21 +43,14 @@ void Menu_Init(void)
     head.No = 0;
     head.name = "Menu";
     head.kind = MENU_Folder;
-
-    MENU *Folder1 = dynamicCreate_Menu_Folder(&head, "Folder1");
-    MENU *Folder2 = dynamicCreate_Menu_Folder(&head, "Folder2");
-    dynamicCreate_Menu_Folder(Folder2, "Folder3");
-    dynamicCreate_Menu_Folder(Folder2, "Folder4");
-    dynamicCreate_Menu_Folder(Folder2, "Folder5");
-
+ 
     
-    dynamicCreate_Menu_Number(Folder1, "aaa", &test, int32_Box);
-    dynamicCreate_Menu_Number(Folder1, "bbb", &test1, float_Box);
-    dynamicCreate_Menu_Number(Folder1, "eee", &test4, float_Box);
-    dynamicCreate_Menu_Number(Folder1, "ddd", &test3, float_Box);
-    dynamicCreate_Menu_Number(Folder1, "ccc", &test2, bool_Box);
-    dynamicCreate_Menu_LimitNumberBox(Folder1, "u8_n", &u8_n, uint8_Box, 0, 100);
-    MENU *Folder6 = dynamicCreate_Menu_Folder(Folder1, "Folder6");
+    dynamicCreate_Menu_Number(&head, "Kp", &AnglePID.Kp, float_Box);
+    dynamicCreate_Menu_Number(&head, "Ki", &AnglePID.Ki, float_Box);
+    dynamicCreate_Menu_Number(&head, "Kd", &AnglePID.Kd, float_Box);
+    dynamicCreate_Menu_Number(&head, "Target", &AnglePID.Target, float_Box);
+    dynamicCreate_Menu_Number(&head, "actual", &Angle , float_Box);
+    dynamicCreate_Menu_Number(&head, "out", &AnglePID.Out , float_Box);
     Circle_Menu(&head);
 
     key = head.child;
@@ -219,7 +209,7 @@ void Menu_Show_Number(void)
     MENU *s = h->child;
 
     /* char buf[Name_Len + 3]; */
-    for (int i = 1; i < h->Sons; i++)
+    for (int i = 1; i <= h->Sons; i++)
     {
 
         switch (s->kind)
