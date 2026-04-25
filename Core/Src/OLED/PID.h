@@ -3,9 +3,9 @@
 
 #include "ALL.h"
 
-// 如何使用： 
+// 如何使用：
 
-// 离散型PID 需要调控周期T 
+// 离散型PID 需要调控周期T
 // void TIM1_UP_IRQHandler(void)
 // {
 //   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
@@ -30,7 +30,7 @@
 //       count2 = 0;
 //       Outer.Actual = Location; // speed / 1040 =    (speed的单位 边沿数/40ms) 转每40ms
 //       Outer.Target = -(data / 4035.0 * 2000 - 1000);
-//       PID_Update(&Outer); 
+//       PID_Update(&Outer);
 //       Inner.Target = Outer.Out;
 //     }
 //   }
@@ -54,12 +54,16 @@ typedef struct PID_t
     float Error1;
     float ErrorInt;
 
+    float ErrorIntMax; // 积分最大限幅
+    float ErrorIntMin;
+
     float OutMax;
     float OutMin;
-    
-}PID_t;
+    float OutOffset; // 输出偏移值
 
-void PID_Update(PID_t* p);
-extern PID_t AnglePID ;
+} PID_t;
 
+void PID_Update(PID_t *p);
+extern PID_t AnglePID;
+extern PID_t GyroPID;
 #endif

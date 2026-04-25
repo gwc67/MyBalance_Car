@@ -157,7 +157,7 @@ int main(void)
     //  float angle[3] = {AngleAcc,AngleGyro,Angle};
     //  BlueSerial_SendFloatArray(angle,3);
     Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
-
+    
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
     
     /* USER CODE END WHILE */

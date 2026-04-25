@@ -47,16 +47,30 @@ uint8_t TimeErrorFlag;
 float SpeedL, SpeedR;
 extern uint8_t BlueSerial_RxPacket[100];
 extern uint8_t BlueSerial_RxFlag;
-// float AngleAcc;
-// float AngleGyro;
-// float Angle;
+float AngleAcc;
+float AngleGyro;
+float Angle;
+float GyroY_Actual;
 PID_t AnglePID = {
-    .Kd = 0,
-    .Ki = 0,
-    .Kp = 0,
+    .Kd = 3.4,
+    .Ki = 0.08,
+    .Kp = 4.3,
     .OutMax = 100,
-    .OutMin = -100
+    .OutMin = -100,
+    .ErrorIntMax = 600,
+    .ErrorIntMin = -600,
+    .OutOffset = 2,
+    
+  
+};
 
+PID_t GyroPID = {
+  .Kp = 0.4,
+  .Kd = 0.9,
+  .Ki = 0.1,
+  .OutMax = 5,
+  .OutMin = -5
+  
 };
 #define Max 100
 /* USER CODE END PV */
@@ -226,42 +240,50 @@ void TIM1_UP_IRQHandler(void)
   if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
     Count++;
-    if (Count >= 1)
+    if (Count >= 10)
     {
       Count = 0;
       MPU6050_Get_Raw(&raw);
       raw.GyroY += 10;
+
+
+      
       AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
-      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.002;
-
-      float Alpha = 0.03;
+      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.01;
+      GyroY_Actual = raw.GyroY / 32768.0 * 2000;
+      float Alpha = 0.01;
       Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
-
+      
       if (RunFlag)
       {
-        AnglePID.Actual = raw.pitch;
+       
+        
+        AnglePID.Actual = Angle;
         PID_Update(&AnglePID);
-        AvePwm = AnglePID.Out;
+        GyroPID.Target = AnglePID.Out;
+        GyroPID.Actual = GyroY_Actual;
+        PID_Update(&GyroPID); 
+        AvePwm = (AnglePID.Out + GyroPID.Out);
         // 当DifPwm大于0时 小车右转
         LeftPwm = AvePwm + DifPwm / 2;
         RightPwm = AvePwm - DifPwm / 2;
  
-        // if (LeftPwm > Max)
-        // {
-        //   LeftPwm = Max;
-        // }
-        // else if (LeftPwm < -Max)
-        // {
-        //   LeftPwm = -Max;
-        // }
-        // if (RightPwm > Max)
-        // {
-        //   RightPwm = Max;
-        // }
-        // else if (RightPwm < -Max)
-        // {
-        //   RightPwm = -Max;
-        // }
+        if (LeftPwm > Max)
+        {
+          LeftPwm = Max;
+        }
+        else if (LeftPwm < -Max)
+        {
+          LeftPwm = -Max;
+        }
+        if (RightPwm > Max)
+        {
+          RightPwm = Max;
+        }
+        else if (RightPwm < -Max)
+        {
+          RightPwm = -Max;
+        }
 
         Servo_SetSpeed_left(LeftPwm);
         Servo_SetSpeed_right(RightPwm);
@@ -271,6 +293,7 @@ void TIM1_UP_IRQHandler(void)
         Servo_SetSpeed_left(0);
         Servo_SetSpeed_right(0);
       }
+      
     }
 
     Key_Tick();
