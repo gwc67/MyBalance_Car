@@ -51,19 +51,11 @@ extern uint8_t BlueSerial_RxFlag;
 // float AngleGyro;
 // float Angle;
 PID_t AnglePID = {
-    .Kd = 2,
-    .Ki = 0,
-    .Kp = 10,
-    .OutMax = 100,
-    .OutMin = -100
-
-};
-PID_t SpeedPID = {
     .Kd = 0,
     .Ki = 0,
-    .Kp = 2,
-    .OutMax = 20,
-    .OutMin = -20
+    .Kp = 0,
+    .OutMax = 100,
+    .OutMin = -100
 
 };
 #define Max 100
@@ -230,11 +222,10 @@ void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
 
-  static uint16_t Count , Count1;
+  static uint16_t Count ;
   if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
     Count++;
-    Count1++;
     if (Count >= 1)
     {
       Count = 0;
@@ -255,22 +246,22 @@ void TIM1_UP_IRQHandler(void)
         LeftPwm = AvePwm + DifPwm / 2;
         RightPwm = AvePwm - DifPwm / 2;
  
-        if (LeftPwm > Max)
-        {
-          LeftPwm = Max;
-        }
-        else if (LeftPwm < -Max)
-        {
-          LeftPwm = -Max;
-        }
-        if (RightPwm > Max)
-        {
-          RightPwm = Max;
-        }
-        else if (RightPwm < -Max)
-        {
-          RightPwm = -Max;
-        }
+        // if (LeftPwm > Max)
+        // {
+        //   LeftPwm = Max;
+        // }
+        // else if (LeftPwm < -Max)
+        // {
+        //   LeftPwm = -Max;
+        // }
+        // if (RightPwm > Max)
+        // {
+        //   RightPwm = Max;
+        // }
+        // else if (RightPwm < -Max)
+        // {
+        //   RightPwm = -Max;
+        // }
 
         Servo_SetSpeed_left(LeftPwm);
         Servo_SetSpeed_right(RightPwm);
@@ -281,23 +272,7 @@ void TIM1_UP_IRQHandler(void)
         Servo_SetSpeed_right(0);
       }
     }
-    if (Count1 > 50)
-    {
-      Count1 = 0;
-      SpeedL = Encode_Get_left() / 44.0 /0.05 / 20; // 转每秒；
-      SpeedR = Encode_Get_right() / 44.0 /0.05 / 20; // 转每秒；
-      
-      AvePwm = (SpeedL + SpeedR) / 2.0;
-      DifPwm = LeftPwm - RightPwm;
-      if (RunFlag)
-      {
-        SpeedPID.Actual = AvePwm;
-        PID_Update(&SpeedPID);
-        AnglePID.Target = SpeedPID.Out;
-      }
-      
-    }
-    
+
     Key_Tick();
 
     if ( raw.pitch > 70 ||   raw.pitch< -70)

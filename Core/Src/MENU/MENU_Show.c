@@ -44,19 +44,13 @@ void Menu_Init(void)
     head.name = "Menu";
     head.kind = MENU_Folder;
  
-    MENU* Angle = dynamicCreate_Menu_Folder(&head,"Angle");
-    MENU* Speed = dynamicCreate_Menu_Folder(&head,"Speed");
-    dynamicCreate_Menu_Number(Angle, "Kp", &AnglePID.Kp, float_Box);
-    dynamicCreate_Menu_Number(Angle, "Ki", &AnglePID.Ki, float_Box);
-    dynamicCreate_Menu_Number(Angle, "Kd", &AnglePID.Kd, float_Box);
-    dynamicCreate_Menu_Number(Angle, "Target", &AnglePID.Target, float_Box);
-    dynamicCreate_Menu_Number(Angle, "actual", &Angle , float_Box);
-    dynamicCreate_Menu_Number(Angle, "out", &AnglePID.Out , float_Box);
-    dynamicCreate_Menu_Number(Speed,"Kp",&SpeedPID.Kp,float_Box);
-    dynamicCreate_Menu_Number(Speed, "Ki", &SpeedPID.Ki, float_Box);
-    dynamicCreate_Menu_Number(Speed, "Kd", &SpeedPID.Kd, float_Box);
-    dynamicCreate_Menu_Number(Speed, "Target", &SpeedPID.Target, float_Box);
-    dynamicCreate_Menu_Number(Speed, "out", &SpeedPID.Out , float_Box);
+    
+    dynamicCreate_Menu_Number(&head, "Kp", &AnglePID.Kp, float_Box);
+    dynamicCreate_Menu_Number(&head, "Ki", &AnglePID.Ki, float_Box);
+    dynamicCreate_Menu_Number(&head, "Kd", &AnglePID.Kd, float_Box);
+    dynamicCreate_Menu_Number(&head, "Target", &AnglePID.Target, float_Box);
+    dynamicCreate_Menu_Number(&head, "actual", &Angle , float_Box);
+    dynamicCreate_Menu_Number(&head, "out", &AnglePID.Out , float_Box);
     Circle_Menu(&head);
 
     key = head.child;
