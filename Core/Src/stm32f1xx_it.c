@@ -51,13 +51,22 @@ extern uint8_t BlueSerial_RxFlag;
 // float AngleGyro;
 // float Angle;
 PID_t AnglePID = {
-    .Kd = 0,
+    .Kd = 2,
     .Ki = 0,
-    .Kp = 0,
+    .Kp = 10,
     .OutMax = 100,
     .OutMin = -100
 
 };
+PID_t SpeedPID = {
+    .Kd = 0,
+    .Ki = 0,
+    .Kp = 2,
+    .OutMax = 20,
+    .OutMin = -20
+
+};
+#define Max 100
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -80,8 +89,8 @@ PID_t AnglePID = {
 /*           Cortex-M3 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
- * @brief This function handles Non maskable interrupt.
- */
+  * @brief This function handles Non maskable interrupt.
+  */
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
@@ -95,8 +104,8 @@ void NMI_Handler(void)
 }
 
 /**
- * @brief This function handles Hard fault interrupt.
- */
+  * @brief This function handles Hard fault interrupt.
+  */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -110,8 +119,8 @@ void HardFault_Handler(void)
 }
 
 /**
- * @brief This function handles Memory management fault.
- */
+  * @brief This function handles Memory management fault.
+  */
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
@@ -125,8 +134,8 @@ void MemManage_Handler(void)
 }
 
 /**
- * @brief This function handles Prefetch fault, memory access fault.
- */
+  * @brief This function handles Prefetch fault, memory access fault.
+  */
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
@@ -140,8 +149,8 @@ void BusFault_Handler(void)
 }
 
 /**
- * @brief This function handles Undefined instruction or illegal state.
- */
+  * @brief This function handles Undefined instruction or illegal state.
+  */
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
@@ -155,8 +164,8 @@ void UsageFault_Handler(void)
 }
 
 /**
- * @brief This function handles System service call via SWI instruction.
- */
+  * @brief This function handles System service call via SWI instruction.
+  */
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -168,8 +177,8 @@ void SVC_Handler(void)
 }
 
 /**
- * @brief This function handles Debug monitor.
- */
+  * @brief This function handles Debug monitor.
+  */
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
@@ -181,8 +190,8 @@ void DebugMon_Handler(void)
 }
 
 /**
- * @brief This function handles Pendable request for system service.
- */
+  * @brief This function handles Pendable request for system service.
+  */
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -194,8 +203,8 @@ void PendSV_Handler(void)
 }
 
 /**
- * @brief This function handles System tick timer.
- */
+  * @brief This function handles System tick timer.
+  */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -215,34 +224,27 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
- * @brief This function handles TIM1 update interrupt.
- */
-int Vertical(float expectAngle,float actualAngle,float gyro_y)
-{
-	int temp;
-	temp = AnglePID.Kp*(actualAngle-expectAngle)+AnglePID.Kd*gyro_y;
-	return temp;
-}
+  * @brief This function handles TIM1 update interrupt.
+  */
 void TIM1_UP_IRQHandler(void)
 {
   /* USER CODE BEGIN TIM1_UP_IRQn 0 */
 
-  static uint16_t Count;
+  static uint16_t Count , Count1;
   if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
   {
     Count++;
-    if (Count > 5)
+    Count1++;
+    if (Count >= 1)
     {
       Count = 0;
-      // MPU6050_Get_Raw(&raw);
-      // // raw.GyroY += 35;
-      // AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
-      // AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
+      MPU6050_Get_Raw(&raw);
+      raw.GyroY += 10;
+      AngleAcc = atan2(raw.AccX, raw.AccZ) / 3.14159 * 180;
+      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.002;
 
-      // float Alpha = 0.05;
-      // Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
-      // MPU6050_Get_Angle(&raw);
-      mpu_dmp_get_data(&raw.pitch,&raw.roll,&raw.yaw);
+      float Alpha = 0.03;
+      Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
 
       if (RunFlag)
       {
@@ -252,38 +254,22 @@ void TIM1_UP_IRQHandler(void)
         // 当DifPwm大于0时 小车右转
         LeftPwm = AvePwm + DifPwm / 2;
         RightPwm = AvePwm - DifPwm / 2;
-        // if ( LeftPwm > 0&& LeftPwm < 10)
-        // {
-        //   LeftPwm = 10;
-        // }
-        // else if ( LeftPwm < 0&& LeftPwm > -10)
-        // {
-        //   LeftPwm = -10;
-        // }
-        // if ( RightPwm > 0&& RightPwm < 10)
-        // {
-        //   RightPwm = 10;
-        // }
-        // else if ( RightPwm < 0&& RightPwm > -10)
-        // {
-        //   RightPwm = -10;
-        // }
-                
-        if (LeftPwm > 100)
+ 
+        if (LeftPwm > Max)
         {
-          LeftPwm = 100;
+          LeftPwm = Max;
         }
-        else if (LeftPwm < -100)
+        else if (LeftPwm < -Max)
         {
-          LeftPwm = -100;
+          LeftPwm = -Max;
         }
-        if (RightPwm > 100)
+        if (RightPwm > Max)
         {
-          RightPwm = 100;
+          RightPwm = Max;
         }
-        else if (RightPwm < -100)
+        else if (RightPwm < -Max)
         {
-          RightPwm = -100;
+          RightPwm = -Max;
         }
 
         Servo_SetSpeed_left(LeftPwm);
@@ -295,7 +281,23 @@ void TIM1_UP_IRQHandler(void)
         Servo_SetSpeed_right(0);
       }
     }
-
+    if (Count1 > 50)
+    {
+      Count1 = 0;
+      SpeedL = Encode_Get_left() / 44.0 /0.05 / 20; // 转每秒；
+      SpeedR = Encode_Get_right() / 44.0 /0.05 / 20; // 转每秒；
+      
+      AvePwm = (SpeedL + SpeedR) / 2.0;
+      DifPwm = LeftPwm - RightPwm;
+      if (RunFlag)
+      {
+        SpeedPID.Actual = AvePwm;
+        PID_Update(&SpeedPID);
+        AnglePID.Target = SpeedPID.Out;
+      }
+      
+    }
+    
     Key_Tick();
 
     if ( raw.pitch > 70 ||   raw.pitch< -70)
@@ -319,10 +321,4 @@ void TIM1_UP_IRQHandler(void)
   /* USER CODE END TIM1_UP_IRQn 1 */
 }
 
-/**
- * @brief This function handles USART2 global interrupt.
- */
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
+ 

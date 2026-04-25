@@ -23,8 +23,8 @@
 #define BIN2(x)  HAL_GPIO_WritePin(BIN2_GPIO_Port,BIN2_Pin,(GPIO_PinState)x)
 
 void Servo_Init(void);
-void Servo_SetSpeed_left(int8_t PWM);
-void Servo_SetSpeed_right(int8_t PWM); 
+void Servo_SetSpeed_left(int32_t PWM);
+void Servo_SetSpeed_right(int32_t PWM); 
 
 
 

@@ -9,7 +9,7 @@ void Servo_Init(void)
     TIM_PWM_Enable(Servo_Time, LL_TIM_CHANNEL_CH2);
 }
 
-void Servo_SetSpeed_right(int8_t PWM)
+void Servo_SetSpeed_right(int32_t PWM)
 {
     if (PWM >= 0)
     {
@@ -24,7 +24,7 @@ void Servo_SetSpeed_right(int8_t PWM)
         TIM_SetCompare_PWMA(Servo_Time, -PWM);
     }
 }
-void Servo_SetSpeed_left(int8_t PWM)
+void Servo_SetSpeed_left(int32_t PWM)
 {
     if (PWM >= 0)
     {
