@@ -53,9 +53,9 @@ float Angle;
 float GyroY_Actual;
 float AveSpeed,DifSpeed;//平均、差分速度
 PID_t AnglePID = {
-    .Kd = 3.4,
-    .Ki = 0.08,
-    .Kp = 4.3,
+    .Kd = 12,  //12
+    .Ki = 0.1,
+    .Kp = 7.2,    //7.2
     .OutMax = 100,
     .OutMin = -100,
     .ErrorIntMax = 600,
@@ -66,9 +66,9 @@ PID_t AnglePID = {
 };
 
 PID_t GyroPID = {
-  .Kp = 0.4,
-  .Kd = 0.9,
-  .Ki = 0.1,
+  .Kp = 0.39,
+  .Kd = 6,
+  .Ki = 1,
   .OutMax = 5,
   .OutMin = -5
   
@@ -76,9 +76,9 @@ PID_t GyroPID = {
 
 PID_t SpeedPID = 
 {
-    .Kp = 2.3,
-    .Ki = 0.1,
-    .Kd = 0.0,
+    .Kp = 5,
+    .Ki = 0.27,
+    .Kd = 0.12,
     .OutMax = 20,
     .OutMin = -20,
     .ErrorIntMax = 150,
@@ -246,7 +246,7 @@ void SysTick_Handler(void)
   * @brief This function handles TIM1 update interrupt.
   */
 
-  int16_t AX,AY,AZ,GX,GY,GZ;
+  // int16_t AX,AY,AZ,GX,GY,GZ;
 
 void TIM1_UP_IRQHandler ()
 {
@@ -318,8 +318,8 @@ void TIM1_UP_IRQHandler ()
 		{
 			Count1=0;
 			//编码电机速度：编码器测速值/极数/时间/减速比
-			SpeedL= Encode_Get_left() /44.0/0.05/9.27666;
-			SpeedR=Encode_Get_right()/44.0/0.05/9.27666;
+			SpeedL= Encode_Get_left() /44.0/0.05/20;
+			SpeedR=Encode_Get_right()/44.0/0.05/20;
 			
 			AveSpeed=(SpeedL+SpeedR)/2.0;
 			DifSpeed=SpeedL-SpeedR;

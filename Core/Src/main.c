@@ -61,7 +61,7 @@ MPU6050_raw raw;
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
 extern float SpeedL, SpeedR;
-extern   int16_t AX,AY,AZ,GX,GY,GZ;
+// extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
 uint8_t flag;
 uint8_t RunFlag;
@@ -152,8 +152,6 @@ int main(void)
     
     OLED_Clear();
     Menu_Choose();
-    OLED_Printf(0,32,OLED_6X8,"%.2f",Angle);
-    OLED_Printf(0,48,OLED_6X8,"%d",GY);
     OLED_Update();
     // acc????????????????
     //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};

@@ -45,16 +45,24 @@ void Menu_Init(void)
     head.kind = MENU_Folder;
  
     MENU* AAA = dynamicCreate_Menu_Folder(&head,"Angle");
-    MENU* BBB = dynamicCreate_Menu_Folder(&head,"Speed");
+    MENU* BBB = dynamicCreate_Menu_Folder(&head,"Gyro");
+    MENU* CCC = dynamicCreate_Menu_Folder(&head,"Speed");
     dynamicCreate_Menu_Number(AAA, "Kp", &AnglePID.Kp, float_Box);
     dynamicCreate_Menu_Number(AAA, "Ki", &AnglePID.Ki, float_Box);
     dynamicCreate_Menu_Number(AAA, "Kd", &AnglePID.Kd, float_Box);
     dynamicCreate_Menu_Number(AAA, "Target", &AnglePID.Target, float_Box);
     dynamicCreate_Menu_Number(AAA, "actual", &Angle , float_Box);
     dynamicCreate_Menu_Number(AAA, "out", &AnglePID.Out , float_Box);
+    
     dynamicCreate_Menu_Number(BBB, "KpW", &GyroPID.Kp , float_Box);
     dynamicCreate_Menu_Number(BBB, "Kiw", &GyroPID.Ki , float_Box);
     dynamicCreate_Menu_Number(BBB, "Kdw", &GyroPID.Kd , float_Box);
+    
+    dynamicCreate_Menu_Number(CCC, "KpS", &SpeedPID.Kp , float_Box);
+    dynamicCreate_Menu_Number(CCC, "KiS", &SpeedPID.Ki , float_Box);
+    dynamicCreate_Menu_Number(CCC, "KdS", &SpeedPID.Kd , float_Box);
+
+
 
     Circle_Menu(&head);
 

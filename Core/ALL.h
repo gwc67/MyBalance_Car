@@ -29,4 +29,5 @@
 extern uint8_t RunFlag;
 extern int16_t LeftPwm,RightPwm;
 extern int16_t AvePwm,DifPwm; 
+extern float Angle;
 #endif

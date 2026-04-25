@@ -66,4 +66,6 @@ typedef struct PID_t
 void PID_Update(PID_t *p);
 extern PID_t AnglePID;
 extern PID_t GyroPID;
+extern PID_t SpeedPID;
+
 #endif
