@@ -61,6 +61,7 @@ MPU6050_raw raw;
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
 extern float SpeedL, SpeedR;
+extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
 uint8_t flag;
 uint8_t RunFlag;
@@ -136,27 +137,29 @@ int main(void)
       RunFlag = !RunFlag;
     }
      
-    if (BlueSerial_RxFlag)
-    {
+    // if (BlueSerial_RxFlag)
+    // {
       
-      BlueSerial_RxFlag = 0;
-      AnglePID.Kp = FloatArray[0];
-      AnglePID.Ki = FloatArray[1];
-      AnglePID.Kd = FloatArray[2];
-      AnglePID.Target = FloatArray[3];
+    //   BlueSerial_RxFlag = 0;
+    //   AnglePID.Kp = FloatArray[0];
+    //   AnglePID.Ki = FloatArray[1];
+    //   AnglePID.Kd = FloatArray[2];
+    //   AnglePID.Target = FloatArray[3];
       
-      // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
-    }
+    //   // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
+    // }
    
     
     OLED_Clear();
     Menu_Choose();
+    OLED_Printf(0,32,OLED_6X8,"%.2f",Angle);
+    OLED_Printf(0,48,OLED_6X8,"%d",GY);
     OLED_Update();
     // acc????????????????
     //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
     //  float angle[3] = {AngleAcc,AngleGyro,Angle};
     //  BlueSerial_SendFloatArray(angle,3);
-    Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
+    // Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
     
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
     

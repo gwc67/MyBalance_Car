@@ -122,6 +122,21 @@ void MPU6050_Get_Raw(MPU6050_raw *this)
 
 }
 
+void MPU6050_GetData(int16_t *AccX,int16_t *AccY,int16_t *AccZ,
+											int16_t *GyroX,int16_t *GyroY,int16_t *GyroZ)
+{
+	uint8_t Data[14];
+
+	MPU6050_READ_REG_CONTINUE(MPU6050_ACCEL_XOUT_H,14,Data);
+	
+	*AccX=(Data[0]<<8)|Data[1];
+	*AccY=(Data[2]<<8)|Data[3];
+	*AccZ=(Data[4]<<8)|Data[5];
+	
+	*GyroX=(Data[8]<<8)|Data[9];
+	*GyroY=(Data[10]<<8)|Data[11];
+	*GyroZ=(Data[12]<<8)|Data[13];
+}
 
 float MPU6050_GetTemp()
 {
