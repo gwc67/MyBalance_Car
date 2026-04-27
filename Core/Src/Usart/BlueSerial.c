@@ -150,6 +150,7 @@ void USART2_IRQHandler(void)
 
     if (LL_USART_IsActiveFlag_RXNE(MyUSART))
     {
+        LL_USART_ClearFlag_RXNE(MyUSART);
         uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
         if (Rx_State == 0)
         {
@@ -185,7 +186,7 @@ void USART2_IRQHandler(void)
                     convert.Data[1] = BlueSerial_RxPacket[i * 4 + 1];
                     convert.Data[2] = BlueSerial_RxPacket[i * 4 + 2];
                     convert.Data[3] = BlueSerial_RxPacket[i * 4 + 3];
-                    FloatArray[i]  = convert.f;
+                    FloatArray[i] = convert.f;
                     BlueSerial_SendFloatArray(&FloatArray[i], 1);
                 }
                 // }
@@ -210,6 +211,5 @@ void USART2_IRQHandler(void)
 
             /* USER CODE END USART1_IRQn 1 */
         }
-        LL_USART_ClearFlag_RXNE(MyUSART);
     }
 }

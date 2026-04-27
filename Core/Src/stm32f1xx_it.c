@@ -53,9 +53,12 @@ float Angle;
 float GyroY_Actual;
 float AveSpeed,DifSpeed;//平均、差分速度
 PID_t AnglePID = {
-    .Kd = 12,  //12
-    .Ki = 0.1,
-    .Kp = 7.2,    //7.2
+    .Kd = 0,  //12
+    .Ki = 0,
+    .Kp = 0,    //7.2
+    // .Kd = 12,  //12                          // 4.19
+    // .Ki = 0.1,                      
+    // .Kp = 7.2,    //7.2                      // 9.0     
     .OutMax = 100,
     .OutMin = -100,
     .ErrorIntMax = 600,
@@ -66,9 +69,12 @@ PID_t AnglePID = {
 };
 
 PID_t GyroPID = {
-  .Kp = 0.39,
-  .Kd = 6,
-  .Ki = 1,
+  .Kp = 0,
+  .Kd = 0,
+  .Ki = 0,
+  // .Kp = 0.39,
+  // .Kd = 6,
+  // .Ki = 1,
   .OutMax = 5,
   .OutMin = -5
   
@@ -76,15 +82,23 @@ PID_t GyroPID = {
 
 PID_t SpeedPID = 
 {
-    .Kp = 5,
-    .Ki = 0.27,
-    .Kd = 0.12,
-    .OutMax = 20,
-    .OutMin = -20,
+    .Kp = 0,   // 4.0
+    .Ki = 0,    
+    .Kd = 0,    //0.8
+    .OutMax = 13,  // 这里的单位是角度
+    .OutMin = -13,
     .ErrorIntMax = 150,
     .ErrorIntMin = -150,
 };
 
+PID_t TurnPID =
+{
+  .Kp = 0,
+  .Ki = 0,
+  .Kd = 0,
+  .ErrorIntMax = 150,
+  .ErrorIntMin = -150,
+};
 #define Max 100
 /* USER CODE END PV */
 
@@ -332,9 +346,9 @@ void TIM1_UP_IRQHandler ()
 				AnglePID.Target=SpeedPID.Out;
 				
 				/*转向环调控*/
-//				TurnPID.Actual=DifSpeed;
-//				PID_Update(&TurnPID);
-//				DifPWM=TurnPID.Out;
+				TurnPID.Actual=DifSpeed;
+				PID_Update(&TurnPID);
+				DifPwm=TurnPID.Out;
 			}
 		}
 		

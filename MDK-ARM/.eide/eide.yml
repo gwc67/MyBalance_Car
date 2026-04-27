@@ -90,6 +90,8 @@ virtualFolder:
                     - path: ../Core/Src/Usart/Uart.h
                     - path: ../Core/Src/Usart/BlueSerial.c
                     - path: ../Core/Src/Usart/BlueSerial.h
+                    - path: ../Core/Src/Usart/balance_car_serial.c
+                    - path: ../Core/Src/Usart/balance_car_serial.h
                   folders: []
     - name: Drivers
       files:

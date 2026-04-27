@@ -101,7 +101,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
-
+ 
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -137,17 +137,14 @@ int main(void)
       RunFlag = !RunFlag;
     }
      
-    // if (BlueSerial_RxFlag)
-    // {
+    if (BlueSerial_RxFlag)
+    {
       
-    //   BlueSerial_RxFlag = 0;
-    //   AnglePID.Kp = FloatArray[0];
-    //   AnglePID.Ki = FloatArray[1];
-    //   AnglePID.Kd = FloatArray[2];
-    //   AnglePID.Target = FloatArray[3];
-      
-    //   // OLED_Printf(0,0,OLED_8X16,"%s",BlueSerial_RxPacket);
-    // }
+      BlueSerial_RxFlag = 0;
+      SpeedPID.Target = FloatArray[0] / 40;
+      DifPwm = FloatArray[1] / 2;
+      OLED_Printf(0,0,48,"%.2f",SpeedPID.Target);
+    }
    
     
     OLED_Clear();
@@ -157,7 +154,7 @@ int main(void)
     //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
     //  float angle[3] = {AngleAcc,AngleGyro,Angle};
     //  BlueSerial_SendFloatArray(angle,3);
-    // Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
+    Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
     
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
     

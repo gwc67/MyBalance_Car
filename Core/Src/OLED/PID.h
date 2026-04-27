@@ -67,5 +67,5 @@ void PID_Update(PID_t *p);
 extern PID_t AnglePID;
 extern PID_t GyroPID;
 extern PID_t SpeedPID;
-
+extern PID_t TurnPID;
 #endif
