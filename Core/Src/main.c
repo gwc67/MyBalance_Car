@@ -61,6 +61,12 @@ MPU6050_raw raw;
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
 extern float SpeedL, SpeedR;
+extern void Serial_Init_LL(void) ;
+extern void Serial_ProcessCommand_LL(void) ;
+extern void Serial_ReportData_LL(void) ;
+
+
+
 // extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
 uint8_t flag;
@@ -101,7 +107,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
- 
+
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -111,6 +117,7 @@ int main(void)
   BlueSerial_Init();
   MX_TIM1_Init();
   Servo_Init();
+  Serial_Init_LL();
   Key_Init();
   Encode_Init();
   Store_Init();
@@ -137,25 +144,24 @@ int main(void)
       RunFlag = !RunFlag;
     }
      
-    if (BlueSerial_RxFlag)
-    {
+    // if (BlueSerial_RxFlag)
+    // {
       
-      BlueSerial_RxFlag = 0;
-      SpeedPID.Target = FloatArray[0] / 40;
-      DifPwm = FloatArray[1] / 2;
-      OLED_Printf(0,0,48,"%.2f",SpeedPID.Target);
-    }
+    //   BlueSerial_RxFlag = 0;
+    //   SpeedPID.Target = FloatArray[0] / 40;
+    //   DifPwm = FloatArray[1] / 2;
+    //   OLED_Printf(0,0,48,"%.2f",SpeedPID.Target);
+    // }
    
     
     OLED_Clear();
     Menu_Choose();
     OLED_Update();
-    // acc????????????????
-    //  int16_t acc[3] = {raw.AccX,raw.AccY,raw.AccZ};
-    //  float angle[3] = {AngleAcc,AngleGyro,Angle};
-    //  BlueSerial_SendFloatArray(angle,3);
-    Serial_Printf("%d,%.2f,%.2f\n", raw.GyroY, Angle, AnglePID.Out);
-    
+ 
+ 
+    Serial_ProcessCommand_LL();  // 处理上位机指令
+    Serial_ReportData_LL();     // 上
+    // Serial_SendString_LL("Hello from STM32 Balance Car!\r\n"); 
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
     
     /* USER CODE END WHILE */

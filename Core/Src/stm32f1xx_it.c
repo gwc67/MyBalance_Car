@@ -59,8 +59,8 @@ PID_t AnglePID = {
     // .Kd = 12,  //12                          // 4.19
     // .Ki = 0.1,                      
     // .Kp = 7.2,    //7.2                      // 9.0     
-    .OutMax = 100,
-    .OutMin = -100,
+    .OutMax = 50,
+    .OutMin = -50,
     .ErrorIntMax = 600,
     .ErrorIntMin = -600,
     .OutOffset = 2,
@@ -295,11 +295,11 @@ void TIM1_UP_IRQHandler ()
 			float Alpha=0.01;
 			Angle=Alpha*AngleAcc+(1-Alpha)*AngleGyro;
 			
-			if (Angle>50 || Angle<-50)//角度超出可控范围
+			if (Angle>70 || Angle<-70)//角度超出可控范围
 			{
 				RunFlag=0;
 			}
-			
+    
 			if (RunFlag)
 			{
 				/*角度环调控*/
@@ -346,12 +346,11 @@ void TIM1_UP_IRQHandler ()
 				AnglePID.Target=SpeedPID.Out;
 				
 				/*转向环调控*/
-				TurnPID.Actual=DifSpeed;
-				PID_Update(&TurnPID);
-				DifPwm=TurnPID.Out;
-			}
+			TurnPID.Actual=DifSpeed;
+			PID_Update(&TurnPID);
+			DifPwm=TurnPID.Out;
 		}
-		
+	}
 		 
 	}
 }
