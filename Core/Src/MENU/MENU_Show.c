@@ -52,8 +52,8 @@ void Menu_Init(void)
     dynamicCreate_Menu_Number(AAA, "Ki", &AnglePID.Ki, float_Box);
     dynamicCreate_Menu_Number(AAA, "Kd", &AnglePID.Kd, float_Box);
     dynamicCreate_Menu_Number(AAA, "Target", &AnglePID.Target, float_Box);
-    dynamicCreate_Menu_Number(AAA, "actual", &Angle , float_Box);
-    dynamicCreate_Menu_Number(AAA, "out", &AnglePID.Out , float_Box);
+    dynamicCreate_Menu_NumberNoFlash(AAA, "actual", &Angle , float_Box);
+    dynamicCreate_Menu_NumberNoFlash(AAA, "out", &AnglePID.Out , float_Box);
     
     dynamicCreate_Menu_Number(BBB, "KpW", &GyroPID.Kp , float_Box);
     dynamicCreate_Menu_Number(BBB, "Kiw", &GyroPID.Ki , float_Box);
@@ -399,7 +399,6 @@ void Key_Plus(void)
             *(uint8_t *)(key->data) = *(uint8_t *)(key->data) + SetupNumber[SetupIndex] > key->limit_max ? key->limit_max : *(uint8_t *)(key->data) + SetupNumber[SetupIndex];
         }
         Store_Data[key->data_index] = (uint16_t)*(uint8_t *)(key->data);
-        Store_Save();
         break;
     case int8_Box:
         if (!key->isLimit)
@@ -445,12 +444,11 @@ void Key_Plus(void)
         }
         Store_Data[key->data_index] = (uint16_t)*(uint32_t *)(key->data);
         Store_Data[key->data_index + 1] = (uint16_t)(*(uint32_t *)(key->data) >> 16);
-        Store_Save();
         break;
     default:
         break;
     }
-    Store_Save();
+    if (key->save_to_flash) Store_Save();
 }
 
 void Key_Sub(void)
@@ -540,7 +538,7 @@ void Key_Sub(void)
     default:
         break;
     }
-    Store_Save();
+    if (key->save_to_flash) Store_Save();
 }
 
 void Key_Up(void)
@@ -626,7 +624,7 @@ void Key_Enter(void)
         case bool_Box:
             *(bool *)(key->data) = !*(bool *)(key->data);
             Store_Data[key->data_index] = (uint16_t)*(bool *)(key->data);
-            Store_Save();
+            if (key->save_to_flash) Store_Save();
             break;
         default:
             Menu_Show_KeySelect();

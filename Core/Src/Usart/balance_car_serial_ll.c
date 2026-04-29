@@ -4,6 +4,7 @@
  */
 
 #include "balance_car_serial_ll.h"
+#include "MENU.h"
 #include <stdlib.h>
 #include <stdarg.h>
 
@@ -188,11 +189,17 @@ void UpdatePIDParameter_LL(PID_t* pid, float kp, float ki, float kd) {
     pid->Kp = kp;
     pid->Ki = ki;
     pid->Kd = kd;
-    
+
     // 重置积分项，防止积分饱和
     pid->ErrorInt = 0;
     pid->Error0 = 0;
     pid->Error1 = 0;
+
+    // 同步修改到flash，使外部修改也能持久化
+    Menu_SyncVarToFlash(&pid->Kp);
+    Menu_SyncVarToFlash(&pid->Ki);
+    Menu_SyncVarToFlash(&pid->Kd);
+    Menu_FlashSave();
 }
 
 // 发送当前PID参数

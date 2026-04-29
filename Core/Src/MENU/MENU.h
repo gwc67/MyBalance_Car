@@ -22,16 +22,16 @@ typedef enum MENU_KIND{
 }MENU_KIND;
 
 typedef struct MENU{
-        
+
     uint8_t Sons;   //子节点数量
     uint8_t No;     //当前父节点下得第几个成员
 
     void *data;
-    MENU_KIND kind; 
+    MENU_KIND kind;
 
     bool select;
 
-    const char *name; 
+    const char *name;
 
     struct MENU* parent;
     struct MENU* child;
@@ -43,6 +43,7 @@ typedef struct MENU{
     float limit_max;
 
     uint16_t data_index;  // 用于flash存储数据
+    bool save_to_flash;   // 是否允许存储到flash
 
 }MENU;
 
@@ -55,6 +56,11 @@ void dynamicCreate_Menu_Number(MENU* parent, const char name[],void *data,MENU_K
 
 MENU* dynamicCreate_Menu_LimitNumberBox(MENU* parent, const char name[], void* data, MENU_KIND kind, float limit_Min, float limit_Max);
 
+void dynamicCreate_Menu_NumberNoFlash(MENU* parent, const char name[], void* data, MENU_KIND kind);
+
 void Circle_Menu(MENU * Menu);
+
+void Menu_SyncVarToFlash(void *data_ptr);  // 同步单个变量到Store_Data(不调用Store_Save)
+void Menu_FlashSave(void);                 // 执行一次Store_Save
 
 #endif /* __MENU_H */

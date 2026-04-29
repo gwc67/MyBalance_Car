@@ -8,7 +8,7 @@ static MENU Menu_Item_Arr[MENU_MAX_SIZE];
 static uint8_t Menu_Arr_Index = 0;
 static uint16_t flash_Index = 1;
 
-static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *data, MENU_KIND kind, bool islimit, float limit_Min, float limit_Max)
+static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *data, MENU_KIND kind, bool islimit, float limit_Min, float limit_Max, bool save_to_flash)
 {
     if (parent->kind != MENU_Folder)
         return;
@@ -29,6 +29,7 @@ static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *
     me->isLimit = islimit;
     me->limit_min = limit_Min;
     me->limit_max = limit_Max;
+    me->save_to_flash = save_to_flash;
 
     if (kind == uint8_Box || kind == int8_Box)
     {
@@ -51,7 +52,7 @@ static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *
         flash_Index++;
     }
 
-    if (flag == 1)
+    if (flag == 1 && save_to_flash)  // 第一次上电时 将storeData赋值
     {
         switch (me->kind)
         {
@@ -106,7 +107,7 @@ static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *
     me->No = parent->Sons;
 }
 
-#define Create_Menu_Item(parent, me, name, data, kind) __Create_Menu_Item(parent, me, name, data, kind, false, 0, 0)
+#define Create_Menu_Item(parent, me, name, data, kind) __Create_Menu_Item(parent, me, name, data, kind, false, 0, 0, true)
 
 void Create_Menu_Folder(MENU *parent, MENU *me, const char name[])
 {
@@ -138,7 +139,7 @@ void dynamicCreate_Menu_Number(MENU *parent, const char name[], void *data, MENU
 
 void create_Menu_LimitNumberBox(MENU *father, MENU *me, const char *name, void *data, MENU_KIND kind, float limit_Min, float limit_Max)
 {
-    __Create_Menu_Item(father, me, name, data, kind, true, limit_Min, limit_Max);
+    __Create_Menu_Item(father, me, name, data, kind, true, limit_Min, limit_Max, true);
 }
 
 MENU *dynamicCreate_Menu_LimitNumberBox(MENU *parent, const char name[], void *data, MENU_KIND kind, float limit_Min, float limit_Max)
@@ -151,6 +152,61 @@ MENU *dynamicCreate_Menu_LimitNumberBox(MENU *parent, const char name[], void *d
     create_Menu_LimitNumberBox(parent, me, name, data, kind, limit_Min, limit_Max);
 
     return me; // 该返回值的本质：获得文件夹的地址，从而可以在其下面进行创建文件
+}
+
+void dynamicCreate_Menu_NumberNoFlash(MENU *parent, const char name[], void *data, MENU_KIND kind)
+{
+    MENU *me = &Menu_Item_Arr[Menu_Arr_Index++];
+    Create_Menu_Item(parent, me, name, data, kind);
+    me->save_to_flash = false;  // 覆盖宏里的默认true
+}
+
+void Menu_SyncVarToFlash(void *data_ptr)
+{
+    for (uint8_t i = 0; i < Menu_Arr_Index; i++)
+    {
+        MENU *item = &Menu_Item_Arr[i];
+        if (item->data != data_ptr || !item->save_to_flash || item->kind == MENU_Folder)
+            continue;  //符合if条件的话进行下一次循环
+
+        switch (item->kind)
+        {
+        case int32_Box:
+            Store_Data[item->data_index] = (uint16_t)*(int32_t *)data_ptr;
+            Store_Data[item->data_index + 1] = (uint16_t)(*(int32_t *)data_ptr >> 16);
+            break;
+        case float_Box:
+            Store_Data[item->data_index] = *(uint16_t *)((uint8_t *)data_ptr);
+            Store_Data[item->data_index + 1] = *(uint16_t *)((uint8_t *)data_ptr + 2);
+            break;
+        case uint8_Box:
+            Store_Data[item->data_index] = (uint16_t)*(uint8_t *)data_ptr;
+            break;
+        case int8_Box:
+            Store_Data[item->data_index] = (uint16_t)*(int8_t *)data_ptr;
+            break;
+        case uint16_Box:
+            Store_Data[item->data_index] = *(uint16_t *)data_ptr;
+            break;
+        case int16_Box:
+            Store_Data[item->data_index] = (uint16_t)*(int16_t *)data_ptr;
+            break;
+        case uint32_Box:
+            Store_Data[item->data_index] = (uint16_t)*(uint32_t *)data_ptr;
+            Store_Data[item->data_index + 1] = (uint16_t)(*(uint32_t *)data_ptr >> 16);
+            break;
+        case bool_Box:
+            Store_Data[item->data_index] = (uint16_t)*(bool *)data_ptr;
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+void Menu_FlashSave(void)
+{
+    Store_Save();
 }
 
 // 该函数的本质是将传入Menu下的（子菜单）首尾相接 , 因此如果要引入flash的话需要对最后的p.next == NULL 的情况的p本身进行处理，因为它没有经历过flash的初始化
@@ -172,10 +228,10 @@ void Circle_Menu(MENU *Menu)
         {
             Circle_Menu(p);
         }
-        if (flag == 0)
+        if (flag == 0)   // 将storedata的数据重新赋值给对应data
         {
 
-            if (p->kind != MENU_Folder)
+            if (p->kind != MENU_Folder && p->save_to_flash)
             {
                 switch (p->kind)
                 {
@@ -215,6 +271,8 @@ void Circle_Menu(MENU *Menu)
     if (hp->next != NULL)
     {
         Circle_Menu(p);
+        if (flag == 0 && p->save_to_flash && p->kind != MENU_Folder)
+        {
         switch (p->kind)
         {
         case uint8_Box:
@@ -243,6 +301,7 @@ void Circle_Menu(MENU *Menu)
             break;
         default:
             break;
+        }
         }
 
         hp->prev = p;
