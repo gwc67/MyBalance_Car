@@ -24,6 +24,7 @@ virtualFolder:
             - path: ../Core/Src/system_stm32f1xx.c
             - path: ../Core/Src/tim.c
             - path: ../Core/Src/i2c.c
+            - path: ../Core/Src/dma.c
           folders:
             - name: Core
               files:
@@ -90,10 +91,10 @@ virtualFolder:
                     - path: ../Core/Src/Usart/Uart.h
                     - path: ../Core/Src/Usart/BlueSerial.c
                     - path: ../Core/Src/Usart/BlueSerial.h
-                    - path: ../Core/Src/Usart/balance_car_serial.c
-                    - path: ../Core/Src/Usart/balance_car_serial.h
                     - path: ../Core/Src/Usart/balance_car_serial_ll.h
                     - path: ../Core/Src/Usart/balance_car_serial_ll.c
+                    - path: ../Core/Src/Usart/ring_buf.h
+                    - path: ../Core/Src/Usart/ring_buf.c
                   folders: []
     - name: Drivers
       files:

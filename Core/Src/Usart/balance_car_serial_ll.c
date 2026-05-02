@@ -83,53 +83,8 @@ void Serial_ReportData_LL(void) {
     }
 }
 
-// 检查是否有数据可读
-static uint8_t Serial_DataAvailable_LL(void) {
-    return LL_USART_IsActiveFlag_RXNE(MyUSART);
-}
-
-// 读取一个字节
-static uint8_t Serial_ReadByte_LL(void) {
-    return LL_USART_ReceiveData8(MyUSART);
-}
-
-// 处理串口接收到的数据（中断调用）
-void Serial_ProcessRXData_LL(uint8_t data) {
-    char received_char = (char)data;
-        
-        // 处理回车和换行
-        if (received_char == '\r') {
-            return; // 忽略回车
-        }
-        
-        if (received_char == '\n') {
-            // 命令结束，处理完整命令
-            if (cmd_index > 0) {
-                cmd_buffer[cmd_index] = '\0'; // 字符串结束符
-                // ProcessPIDCommand_LL(cmd_buffer);
-                cmd_index = 0; // 重置缓冲区
-            }
-        } else {
-            // 存储字符到缓冲区
-            if (cmd_index < CMD_BUFFER_SIZE - 1) {
-                cmd_buffer[cmd_index++] = received_char;
-            } else {
-                // 缓冲区溢出
-                Serial_SendString_LL("# ERROR: Command too long\\r\\n");
-                cmd_index = 0;
-            }
-        }
-    }
-
-// 处理串口接收到的命令（轮询方式，保留兼容性）
-void Serial_ProcessCommand_LL(void) {
-    // 检查是否有数据可读
-    while (Serial_DataAvailable_LL()) {
-        char received_char = (char)Serial_ReadByte_LL();
-        Serial_ProcessRXData_LL((uint8_t)received_char);
-    }
-}
-
+ 
+ 
 // 处理PID命令
 void ProcessPIDCommand_LL(const char* command) {
     Serial_Printf_LL("# Received: %s\\r\\n", command);

@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -106,8 +107,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_USART2_UART_Init();
-
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -159,8 +160,9 @@ int main(void)
     OLED_Update();
  
  
-    Serial_ProcessCommand_LL();  // 处理上位机指令
+    // Serial_ProcessCommand_LL();  // 处理上位机指令
     Serial_ReportData_LL();     // 上
+    // Serial_Printf("%d",1);
     // Serial_SendString_LL("Hello from STM32 Balance Car!\r\n"); 
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
     
