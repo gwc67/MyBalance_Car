@@ -166,36 +166,36 @@ void Serial_SendPIDParameters_LL(void) {
     Serial_Printf_LL("# TURN:  P=%.3f, I=%.3f, D=%.3f\\r\\n", TurnPID.Kp, TurnPID.Ki, TurnPID.Kd);
 }
 
-void USART1_IRQHandler(void) {
-    // 检查是否接收到数据
-    if (LL_USART_IsActiveFlag_RXNE(USART1)) {
-        // 读取接收到的数据
-        LL_USART_ClearFlag_RXNE(USART1);
-        char received_char = (char)LL_USART_ReceiveData8(USART1);
+// void USART1_IRQHandler(void) {
+//     // 检查是否接收到数据
+//     if (LL_USART_IsActiveFlag_RXNE(USART1)) {
+//         // 读取接收到的数据
+//         LL_USART_ClearFlag_RXNE(USART1);
+//         char received_char = (char)LL_USART_ReceiveData8(USART1);
         
-        // 处理回车和换行
-        if (received_char == '\r') {
-            return; // 忽略回车
-        }
+//         // 处理回车和换行
+//         if (received_char == '\r') {
+//             return; // 忽略回车
+//         }
         
-        if (received_char == '\n') {
-            // 命令结束，处理完整命令
-            if (cmd_index > 0) {
-                cmd_buffer[cmd_index] = '\0'; // 字符串结束符
-                Serial_SendString(cmd_buffer);
+//         if (received_char == '\n') {
+//             // 命令结束，处理完整命令
+//             if (cmd_index > 0) {
+//                 cmd_buffer[cmd_index] = '\0'; // 字符串结束符
+//                 Serial_SendString(cmd_buffer);
                 
-                ProcessPIDCommand_LL(cmd_buffer);
-                cmd_index = 0; // 重置缓冲区
-            }
-        } else {
-            // 存储字符到缓冲区
-            if (cmd_index < CMD_BUFFER_SIZE - 1) {
-                cmd_buffer[cmd_index++] = received_char;
-            } else {
-                // 缓冲区溢出
-                Serial_SendString_LL("# ERROR: Command too long\\r\\n");
-                cmd_index = 0;
-            }
-        }
-    }
-}
+//                 ProcessPIDCommand_LL(cmd_buffer);
+//                 cmd_index = 0; // 重置缓冲区
+//             }
+//         } else {
+//             // 存储字符到缓冲区
+//             if (cmd_index < CMD_BUFFER_SIZE - 1) {
+//                 cmd_buffer[cmd_index++] = received_char;
+//             } else {
+//                 // 缓冲区溢出
+//                 Serial_SendString_LL("# ERROR: Command too long\\r\\n");
+//                 cmd_index = 0;
+//             }
+//         }
+//     }
+// }

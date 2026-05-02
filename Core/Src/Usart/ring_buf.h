@@ -12,9 +12,6 @@ typedef struct
 
 }stRingBufTdf,*pstRingBufTdf;
 
-#include "ring_buf.h"
-
-
 void vRingBufInit(pstRingBufTdf pstRingBuf,uint32_t ulLen , uint8_t *pucBuf);
 
 uint8_t ucRingBufWrite(pstRingBufTdf pstRingBuf,uint8_t ucValue);

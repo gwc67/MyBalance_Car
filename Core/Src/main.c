@@ -62,11 +62,9 @@ MPU6050_raw raw;
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
 extern float SpeedL, SpeedR;
-extern void Serial_Init_LL(void) ;
-extern void Serial_ProcessCommand_LL(void) ;
-extern void Serial_ReportData_LL(void) ;
-
-
+extern void Serial_Init_LL(void);
+extern void Serial_ProcessCommand_LL(void);
+extern void Serial_ReportData_LL(void);
 
 // extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
@@ -74,14 +72,30 @@ uint8_t flag;
 uint8_t RunFlag;
 int16_t LeftPwm, RightPwm;
 int16_t AvePwm, DifPwm;
- 
 
+stRingBufTdf stRingBuf_t;
+
+uint8_t rece_it_data;
+
+uint8_t buf[20];
+
+void USART1_IRQHandler(void)
+{
+  // 检查是否接收到数据
+  if (LL_USART_IsActiveFlag_RXNE(USART1))
+  {
+    // 读取接收到的数据
+    LL_USART_ClearFlag_RXNE(USART1);
+    rece_it_data = LL_USART_ReceiveData8(USART1);
+    ucRingBufWrite(&stRingBuf_t, rece_it_data);
+  }
+}
 /* USER CODE END 0 */
 
 /**
-  * @brief  The application entry point.
-  * @retval int
-  */
+ * @brief  The application entry point.
+ * @retval int
+ */
 int main(void)
 {
 
@@ -124,6 +138,9 @@ int main(void)
   Store_Init();
   OLED_Init();
   Menu_Init();
+
+  vRingBufInit(&stRingBuf_t, 20, buf);
+  uint8_t temp_get_data;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -139,33 +156,36 @@ int main(void)
       LED1_ON();
     }
 
-    
     if (Key_Check(KEY_1, KEY_DOUBLE))
     {
       RunFlag = !RunFlag;
     }
-     
+
+    if (ucRingBufGetLength(&stRingBuf_t) > 0)
+    {
+      ucRingBufRead(&stRingBuf_t,&temp_get_data);
+      Serial_SendByte_LL(temp_get_data);
+    }
+    
     // if (BlueSerial_RxFlag)
     // {
-      
+
     //   BlueSerial_RxFlag = 0;
     //   SpeedPID.Target = FloatArray[0] / 40;
     //   DifPwm = FloatArray[1] / 2;
     //   OLED_Printf(0,0,48,"%.2f",SpeedPID.Target);
     // }
-   
-    
+
     OLED_Clear();
     Menu_Choose();
     OLED_Update();
- 
- 
+
     // Serial_ProcessCommand_LL();  // 处理上位机指令
-    Serial_ReportData_LL();     // 上
+    // Serial_ReportData_LL(); // 上
     // Serial_Printf("%d",1);
-    // Serial_SendString_LL("Hello from STM32 Balance Car!\r\n"); 
+    // Serial_SendString_LL("Hello from STM32 Balance Car!\r\n");
     // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
-    
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -174,17 +194,17 @@ int main(void)
 }
 
 /**
-  * @brief System Clock Configuration
-  * @retval None
-  */
+ * @brief System Clock Configuration
+ * @retval None
+ */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-  * in the RCC_OscInitTypeDef structure.
-  */
+   * in the RCC_OscInitTypeDef structure.
+   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -198,9 +218,8 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+   */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -217,9 +236,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
+ * @brief  This function is executed in case of error occurrence.
+ * @retval None
+ */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -232,12 +251,12 @@ void Error_Handler(void)
 }
 #ifdef USE_FULL_ASSERT
 /**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
+ * @brief  Reports the name of the source file and the source line number
+ *         where the assert_param error has occurred.
+ * @param  file: pointer to the source file name
+ * @param  line: assert_param error line source number
+ * @retval None
+ */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */

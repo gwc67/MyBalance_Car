@@ -7,7 +7,8 @@ void vRingBufInit(pstRingBufTdf pstRingBuf,uint32_t ulLen , uint8_t *pucBuf)
     pstRingBuf->ulWriteIdx = 0;
 
     pstRingBuf->ulLength = ulLen;
-
+    pstRingBuf->pucBuffer = pucBuf;
+    
     for (int i = 0; i < ulLen; i++)
     {
         pucBuf[i] = 0;
@@ -23,7 +24,7 @@ uint8_t ucRingBufWrite(pstRingBufTdf pstRingBuf,uint8_t ucValue)
         ulNextWrite = 0;
     }
 
-    if (ulNextWrite == pstRingBuf)
+    if (ulNextWrite == pstRingBuf->ulReadIdx)
     {
         return 1;
     }
@@ -32,6 +33,7 @@ uint8_t ucRingBufWrite(pstRingBufTdf pstRingBuf,uint8_t ucValue)
         pstRingBuf->pucBuffer[pstRingBuf->ulWriteIdx] = ucValue;
         pstRingBuf->ulWriteIdx = ulNextWrite;
     }
+    return 0;
 }
 
 uint8_t ucRingBufRead(pstRingBufTdf pstRingBuf,uint8_t *pucData)
@@ -44,18 +46,18 @@ uint8_t ucRingBufRead(pstRingBufTdf pstRingBuf,uint8_t *pucData)
     {
         
         *pucData = pstRingBuf->pucBuffer[pstRingBuf->ulReadIdx];
-        pstRingBuf += 1;
+        pstRingBuf->ulReadIdx++;
         if (pstRingBuf->ulReadIdx == pstRingBuf->ulLength)
         {
-            pstRingBuf->ulReadIdx =  0;
+            pstRingBuf->ulReadIdx = 0;
         }
     }
-    
+    return 0;    
 }
 
 uint8_t ucRingBufGetLength(pstRingBufTdf pstRingBuf)
 {
-    return (pstRingBuf->ulWriteIdx - pstRingBuf->ulWriteIdx + pstRingBuf->ulLength) % pstRingBuf->ulLength;
+    return (pstRingBuf->ulWriteIdx - pstRingBuf->ulReadIdx + pstRingBuf->ulLength) % pstRingBuf->ulLength;
 }
 
 //ulPostion 0 1 2 3 4 5 6
