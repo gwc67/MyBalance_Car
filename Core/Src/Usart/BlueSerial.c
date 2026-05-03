@@ -142,74 +142,74 @@ typedef union
 #else
 #endif
 
-void USART2_IRQHandler(void)
-{
-    /* USER CODE BEGIN USART1_IRQn 0 */
-    static uint8_t Rx_State;
-    static uint8_t P_RxPacket;
+// void USART2_IRQHandler(void)
+// {
+//     /* USER CODE BEGIN USART1_IRQn 0 */
+//     static uint8_t Rx_State;
+//     static uint8_t P_RxPacket;
 
-    if (LL_USART_IsActiveFlag_RXNE(MyUSART))
-    {
-        LL_USART_ClearFlag_RXNE(MyUSART);
-        uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
-        if (Rx_State == 0)
-        {
-            if (RxData == 0xA5)
-            {
-                Rx_State = 1;
-                P_RxPacket = 0;
-#if receive_str
+//     if (LL_USART_IsActiveFlag_RXNE(MyUSART))
+//     {
+//         LL_USART_ClearFlag_RXNE(MyUSART);
+//         uint8_t RxData = LL_USART_ReceiveData8(MyUSART);
+//         if (Rx_State == 0)
+//         {
+//             if (RxData == 0xA5)
+//             {
+//                 Rx_State = 1;
+//                 P_RxPacket = 0;
+// #if receive_str
 
-#else
-                // Check = 0;
-#endif
-            }
-        }
-        else if (Rx_State == 1)
-        {
-            if (RxData == 0x5A)
-            {
-                Rx_State = 0;
-#if receive_str
-                BlueSerial_RxPacket[P_RxPacket] = '\0';
-#else
-                // uint8_t receive_check = BlueSerial_RxPacket[P_RxPacket - 1];
+// #else
+//                 // Check = 0;
+// #endif
+//             }
+//         }
+//         else if (Rx_State == 1)
+//         {
+//             if (RxData == 0x5A)
+//             {
+//                 Rx_State = 0;
+// #if receive_str
+//                 BlueSerial_RxPacket[P_RxPacket] = '\0';
+// #else
+//                 // uint8_t receive_check = BlueSerial_RxPacket[P_RxPacket - 1];
 
-                // if (receive_check == Check)
-                // {
-                uint8_t data_len = P_RxPacket;
-                float_count = data_len / 4;
-                for (int i = 0; i < float_count; i++)
-                {
-                    FloatUnion convert;
-                    convert.Data[0] = BlueSerial_RxPacket[i * 4];
-                    convert.Data[1] = BlueSerial_RxPacket[i * 4 + 1];
-                    convert.Data[2] = BlueSerial_RxPacket[i * 4 + 2];
-                    convert.Data[3] = BlueSerial_RxPacket[i * 4 + 3];
-                    FloatArray[i] = convert.f;
-                    BlueSerial_SendFloatArray(&FloatArray[i], 1);
-                }
-                // }
+//                 // if (receive_check == Check)
+//                 // {
+//                 uint8_t data_len = P_RxPacket;
+//                 float_count = data_len / 4;
+//                 for (int i = 0; i < float_count; i++)
+//                 {
+//                     FloatUnion convert;
+//                     convert.Data[0] = BlueSerial_RxPacket[i * 4];
+//                     convert.Data[1] = BlueSerial_RxPacket[i * 4 + 1];
+//                     convert.Data[2] = BlueSerial_RxPacket[i * 4 + 2];
+//                     convert.Data[3] = BlueSerial_RxPacket[i * 4 + 3];
+//                     FloatArray[i] = convert.f;
+//                     BlueSerial_SendFloatArray(&FloatArray[i], 1);
+//                 }
+//                 // }
 
-#endif
-                BlueSerial_RxFlag = 1;
-            }
-            else
-            {
+// #endif
+//                 BlueSerial_RxFlag = 1;
+//             }
+//             else
+//             {
 
-                BlueSerial_RxPacket[P_RxPacket++] = RxData;
-#if receive_str
+//                 BlueSerial_RxPacket[P_RxPacket++] = RxData;
+// #if receive_str
 
-#else
-                // Check += RxData;
+// #else
+//                 // Check += RxData;
 
-#endif
-            }
+// #endif
+//             }
 
-            /* USER CODE END USART1_IRQn 0 */
-            /* USER CODE BEGIN USART1_IRQn 1 */
+//             /* USER CODE END USART1_IRQn 0 */
+//             /* USER CODE BEGIN USART1_IRQn 1 */
 
-            /* USER CODE END USART1_IRQn 1 */
-        }
-    }
-}
+//             /* USER CODE END USART1_IRQn 1 */
+//         }
+//     }
+// }

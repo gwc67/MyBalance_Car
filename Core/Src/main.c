@@ -77,7 +77,7 @@ stRingBufTdf stRingBuf_t;
 
 uint8_t rece_it_data;
 
-uint8_t buf[20];
+uint8_t buf[30];
 
 typedef struct
 {
@@ -88,18 +88,18 @@ typedef struct
 } stUARTFrameTdf;
 
 stUARTFrameTdf stUARTFrame = {
-    .usFrameHead = 0x55AA,
+    .usFrameHead = 0x5AA5,
     .ucSumCheck = 1,
 
 };
 
-extern uint8_t dma_buf[10];
+extern uint8_t dma_buf[30];
 void USART1_IRQHandler(void)
 {
   // 检查是否接收到数据
   if (LL_USART_IsActiveFlag_IDLE(USART1) && LL_USART_IsEnabledIT_IDLE(USART1))
   {
-    // 读取接收到的数据
+
     LL_USART_ClearFlag_IDLE(USART1);
 
     // 停止DMA接受 ，以便读取当前接受了多少数据
@@ -116,6 +116,24 @@ void USART1_IRQHandler(void)
       ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
     }
   }
+}
+
+void USART2_IRQHandler(void)
+{
+    if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
+    {
+      LL_USART_ClearFlag_IDLE(USART2);
+      LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_6);
+      uint32_t len = LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_6);
+      LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_6,30);
+      LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_6);
+      for (int i = 0; i < len; i++)
+      {
+        ucRingBufWrite(&stRingBuf_t,dma_buf[i]);
+      }
+      
+    }
+    
 }
 /* USER CODE END 0 */
 
@@ -156,7 +174,7 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
-  BlueSerial_Init();
+  // BlueSerial_Init();
   MX_TIM1_Init();
   Servo_Init();
   // Serial_Init_LL();
@@ -203,7 +221,7 @@ int main(void)
       RunFlag = !RunFlag;
     }
 
-    if (ucRingBufGetLength(&stRingBuf_t) > 6)
+    if (ucRingBufGetLength(&stRingBuf_t) > 5)
     {
       uint8_t head1, head2, len, sum, temp;
       uint8_t calc_sum = 0;
@@ -246,22 +264,25 @@ int main(void)
       char msg[10];
       char msg1[10];
       sprintf(msg, "length:%d\r\n", len);
-      Serial_SendArray((uint8_t *)msg, strlen(msg));
+      BlueSerial_SendArray((uint8_t *)msg, strlen(msg));
       sprintf(msg1, "calc_sum:%d\r\n", calc_sum);
-      Serial_SendArray((uint8_t *)msg1, strlen(msg1));
+      BlueSerial_SendArray((uint8_t *)msg1, strlen(msg1));
 
       if (data_buf[0] == 0x01 && data_buf[1] == 0x02)
       {
-        Serial_SendArray("OK!\r\n", 5);
+        BlueSerial_SendArray("OK!\r\n", 5);
       }
-
+      OLED_Clear();
+      OLED_Printf(0,0,OLED_8X16,"%s",msg);
+      OLED_Printf(0,16,OLED_8X16,"%s",msg1);
+      OLED_Update();
       // ucRingBufRead(&stRingBuf_t,&temp_get_data);
 
       // Serial_SendByte_LL(temp_get_data);
     }
-     OLED_Clear();
-      Menu_Choose();
-      OLED_Update();
+    //  OLED_Clear();
+    //   Menu_Choose();
+    //   OLED_Update();
 
     // if (BlueSerial_RxFlag)
     // {
