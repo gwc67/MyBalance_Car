@@ -19,9 +19,8 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
-
 /* USER CODE BEGIN 0 */
-
+uint8_t dma_buf[10];
 /* USER CODE END 0 */
 
 /* USART1 init function */
@@ -90,7 +89,11 @@ void MX_USART1_UART_Init(void)
   LL_USART_ConfigAsyncMode(USART1);
   LL_USART_Enable(USART1);
   /* USER CODE BEGIN USART1_Init 2 */
-  LL_USART_EnableIT_RXNE(USART1);
+
+  LL_USART_EnableDMAReq_RX(USART1);
+  LL_USART_EnableIT_IDLE(USART1);
+  LL_DMA_ConfigAddresses(DMA1,LL_DMA_CHANNEL_5,LL_USART_DMA_GetRegAddr(USART1),(uint32_t)dma_buf,LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+  
   /* USER CODE END USART1_Init 2 */
 
 }

@@ -257,70 +257,107 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles DMA1 channel5 global interrupt.
-  */
-void DMA1_Channel5_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 0 */
-  /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel5_IRQn 1 */
-}
-
-/**
-  * @brief This function handles DMA1 channel6 global interrupt.
-  */
-void DMA1_Channel6_IRQHandler(void)
-{
-  /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
-
-  /* USER CODE END DMA1_Channel6_IRQn 0 */
-  /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
-
-  /* USER CODE END DMA1_Channel6_IRQn 1 */
-}
-
-/**
   * @brief This function handles TIM1 update interrupt.
   */
-void TIM1_UP_IRQHandler(void)
+
+  // int16_t AX,AY,AZ,GX,GY,GZ;
+
+void TIM1_UP_IRQHandler ()
 {
-  /* USER CODE BEGIN TIM1_UP_IRQn 0 */
+	static uint16_t Count0,Count1;
+	if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
+	{
+		LL_TIM_ClearFlag_UPDATE(TIM1);
+		
+		Key_Tick();//定时器扫描按键
+		
+		Count0++;
+		if (Count0>=10)//10ms定时
+		{
+			Count0=0;
+			
+			/*读MPU6050传感器值*/
+			// MPU6050_GetData(&AX,&AY,&AZ,&GX,&GY,&GZ);
+			MPU6050_Get_Raw(&raw);
+			//GY-=10;//初步校准
+			
+			/*Y轴角度：加速度计*/
+			AngleAcc=-atan2(raw.AccX,raw.AccZ)/3.14158*180;
+			
+			/*Y轴角度：角速度计，积分*/
+			AngleGyro=Angle+raw.GyroY/32768.0*2000*0.01;
+			
+			/*Y轴角速度：角速度计*/
+			GyroY_Actual=raw.GyroY/32768.0*2000;
+			
+			/*角度：互补滤波算法*/
+			//滤波系数（以陀螺仪计为主，越增大滤波系数，稳态误差越小，加速度计的缺点越明显）
+			float Alpha=0.01;
+			Angle=Alpha*AngleAcc+(1-Alpha)*AngleGyro;
+			
+			if (Angle>70 || Angle<-70)//角度超出可控范围
+			{
+				RunFlag=0;
+			}
+    
+			if (RunFlag)
+			{
+				/*角度环调控*/
+				AnglePID.Actual=Angle;
+				PID_Update(&AnglePID);
+				
+			 /*角速度环调控*/
+				GyroPID.Target=AnglePID.Out;
+				GyroPID.Actual=GyroY_Actual;
+				PID_Update(&GyroPID);
+				
+				AvePwm=-(AnglePID.Out+GyroPID.Out);
+				
+				SpeedL=AvePwm+DifPwm/2;
+				SpeedR=AvePwm-DifPwm/2;
+				
+				if (SpeedL>100)SpeedL=100;else if (SpeedL<-100)SpeedL=-100;
+				if (SpeedR>100)SpeedR=100;else if (SpeedR<-100)SpeedR=-100;
+	
+				Servo_SetSpeed_left(SpeedL);Servo_SetSpeed_right( SpeedR);
+			}
+			else
+			{
+				Servo_SetSpeed_left(0);Servo_SetSpeed_right( 0);//电机停转，防止失控
+			}
+			
+		}
+		Count1++;
+		if (Count1>=50)//50ms定时
+		{
+			Count1=0;
+			//编码电机速度：编码器测速值/极数/时间/减速比
+			SpeedL= Encode_Get_left() /44.0/0.05/20;
+			SpeedR=Encode_Get_right()/44.0/0.05/20;
+			
+			AveSpeed=(SpeedL+SpeedR)/2.0;
+			DifSpeed=SpeedL-SpeedR;
+			
+			if (RunFlag)
+			{
+				/*速度环调控*/
+				SpeedPID.Actual=AveSpeed;
+				PID_Update(&SpeedPID);
+				AnglePID.Target=SpeedPID.Out;
+				
+				/*转向环调控*/
+			TurnPID.Actual=DifSpeed;
+			PID_Update(&TurnPID);
+			DifPwm=TurnPID.Out;
+		}
+	}
+		 
+	}
+}
 
   /* USER CODE END TIM1_UP_IRQn 0 */
   /* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
   /* USER CODE END TIM1_UP_IRQn 1 */
-}
-
-/**
-  * @brief This function handles USART1 global interrupt.
-  */
-void USART1_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART1_IRQn 0 */
-
-  /* USER CODE END USART1_IRQn 0 */
-  /* USER CODE BEGIN USART1_IRQn 1 */
-
-  /* USER CODE END USART1_IRQn 1 */
-}
-
-/**
-  * @brief This function handles USART2 global interrupt.
-  */
-void USART2_IRQHandler(void)
-{
-  /* USER CODE BEGIN USART2_IRQn 0 */
-
-  /* USER CODE END USART2_IRQn 0 */
-  /* USER CODE BEGIN USART2_IRQn 1 */
-
-  /* USER CODE END USART2_IRQn 1 */
-}
-
-/* USER CODE BEGIN 1 */
-
-/* USER CODE END 1 */
+ 
+ 

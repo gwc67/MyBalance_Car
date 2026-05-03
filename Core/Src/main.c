@@ -92,15 +92,29 @@ stUARTFrameTdf stUARTFrame = {
   
 };
 
+extern uint8_t dma_buf[10];
 void USART1_IRQHandler(void)
 {
   // 检查是否接收到数据
-  if (LL_USART_IsActiveFlag_RXNE(USART1))
+  if (LL_USART_IsActiveFlag_IDLE(USART1) && LL_USART_IsEnabledIT_IDLE(USART1))
   {
     // 读取接收到的数据
-    LL_USART_ClearFlag_RXNE(USART1);
-    rece_it_data = LL_USART_ReceiveData8(USART1);
-    ucRingBufWrite(&stRingBuf_t, rece_it_data);
+    LL_USART_ClearFlag_IDLE(USART1);
+    
+    //停止DMA接受 ，以便读取当前接受了多少数据
+    LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_5);
+
+    uint32_t len = LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_5);
+
+    LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_5,10);
+
+    LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_5);
+    
+    for (int i = 0; i < len; i++)
+    {
+      ucRingBufWrite(&stRingBuf_t,dma_buf[i]);
+    }
+    
   }
 }
 /* USER CODE END 0 */
@@ -136,7 +150,6 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
-  MX_TIM1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -155,6 +168,11 @@ int main(void)
 
   vRingBufInit(&stRingBuf_t, 20, buf);
   uint8_t temp_get_data;
+
+
+  LL_USART_EnableDMAReq_RX(USART1);
+  
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
