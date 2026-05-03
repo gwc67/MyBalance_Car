@@ -79,6 +79,19 @@ uint8_t rece_it_data;
 
 uint8_t buf[20];
 
+typedef struct{
+  uint16_t usFrameHead;
+  
+  uint8_t ucSumCheck ; // 0 无校验 1 和校验
+
+}stUARTFrameTdf;
+
+stUARTFrameTdf stUARTFrame = {
+  .usFrameHead = 0x55AA,
+  .ucSumCheck = 1,
+  
+};
+
 void USART1_IRQHandler(void)
 {
   // 检查是否接收到数据
@@ -93,9 +106,9 @@ void USART1_IRQHandler(void)
 /* USER CODE END 0 */
 
 /**
- * @brief  The application entry point.
- * @retval int
- */
+  * @brief  The application entry point.
+  * @retval int
+  */
 int main(void)
 {
 
@@ -123,6 +136,7 @@ int main(void)
   MX_GPIO_Init();
   MX_DMA_Init();
   MX_USART2_UART_Init();
+  MX_TIM1_Init();
   MX_TIM2_Init();
   MX_TIM3_Init();
   MX_TIM4_Init();
@@ -161,10 +175,65 @@ int main(void)
       RunFlag = !RunFlag;
     }
 
-    if (ucRingBufGetLength(&stRingBuf_t) > 0)
+    if (ucRingBufGetLength(&stRingBuf_t) > 6)
     {
-      ucRingBufRead(&stRingBuf_t,&temp_get_data);
-      Serial_SendByte_LL(temp_get_data);
+      uint8_t head1,head2,len,sum,temp; 
+      uint8_t calc_sum = 0;
+      uint8_t data_buf[10];
+      uint16_t temp_head;
+
+      head1 = ucRingBufPeek(&stRingBuf_t,0);
+      head2 = ucRingBufPeek(&stRingBuf_t,1);
+
+      temp_head = ((uint16_t)head1 << 8) | head2;
+
+
+      if (temp_head != stUARTFrame.usFrameHead)
+      {
+        ucRingBufRead(&stRingBuf_t,&temp);
+        continue;
+      }
+      
+      ucRingBufRead(&stRingBuf_t,&head1);
+      ucRingBufRead(&stRingBuf_t,&head2);
+      ucRingBufRead(&stRingBuf_t,&len);
+      
+      calc_sum = head1 + head2 +len;
+      if (len > 10)
+      {
+        continue;
+      }
+      
+      for (int i = 0; i < len; i++)
+      {
+        ucRingBufRead(&stRingBuf_t,&data_buf[i]);
+        calc_sum += data_buf[i];
+      }
+      ucRingBufRead(&stRingBuf_t,&sum);
+
+      if (calc_sum != sum)
+      {
+        continue;
+      }
+      
+      char msg[10];
+      char msg1[10];
+      sprintf(msg,"length:%d\r\n",len);
+      Serial_SendArray((uint8_t*)msg,strlen(msg));
+      sprintf(msg1,"calc_sum:%d\r\n",calc_sum);
+      Serial_SendArray((uint8_t*)msg1,strlen(msg1));
+      
+      if (data_buf[0] == 0x01 && data_buf[1] == 0x02)
+      {
+        Serial_SendArray("OK!\r\n",5);
+      }
+      
+      // ucRingBufRead(&stRingBuf_t,&temp_get_data);
+      
+      // Serial_SendByte_LL(temp_get_data);
+    }
+    else{
+      continue;
     }
     
     // if (BlueSerial_RxFlag)
@@ -194,17 +263,17 @@ int main(void)
 }
 
 /**
- * @brief System Clock Configuration
- * @retval None
- */
+  * @brief System Clock Configuration
+  * @retval None
+  */
 void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
-   * in the RCC_OscInitTypeDef structure.
-   */
+  * in the RCC_OscInitTypeDef structure.
+  */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
@@ -218,8 +287,9 @@ void SystemClock_Config(void)
   }
 
   /** Initializes the CPU, AHB and APB buses clocks
-   */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
@@ -236,9 +306,9 @@ void SystemClock_Config(void)
 /* USER CODE END 4 */
 
 /**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
@@ -251,12 +321,12 @@ void Error_Handler(void)
 }
 #ifdef USE_FULL_ASSERT
 /**
- * @brief  Reports the name of the source file and the source line number
- *         where the assert_param error has occurred.
- * @param  file: pointer to the source file name
- * @param  line: assert_param error line source number
- * @retval None
- */
+  * @brief  Reports the name of the source file and the source line number
+  *         where the assert_param error has occurred.
+  * @param  file: pointer to the source file name
+  * @param  line: assert_param error line source number
+  * @retval None
+  */
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
