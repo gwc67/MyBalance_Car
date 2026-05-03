@@ -27,6 +27,7 @@
 #include "stdarg.h"
 #include "PID.h"
 #include "ring_buf.h"
+#include "uart_device.h"
 extern uint8_t RunFlag;
 extern int16_t LeftPwm,RightPwm;
 extern int16_t AvePwm,DifPwm; 

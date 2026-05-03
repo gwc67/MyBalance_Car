@@ -95,6 +95,8 @@ virtualFolder:
                     - path: ../Core/Src/Usart/balance_car_serial_ll.c
                     - path: ../Core/Src/Usart/ring_buf.h
                     - path: ../Core/Src/Usart/ring_buf.c
+                    - path: ../Core/Src/Usart/uart_device.h
+                    - path: ../Core/Src/Usart/uart_device.c
                   folders: []
     - name: Drivers
       files:
