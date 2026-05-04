@@ -270,10 +270,10 @@ int main(void)
         fArray[i / 4] = unConvertUIN.fConvertFloat;
       }
 
-      // if (calc_sum != sum)
-      // {
-      //   continue;
-      // }
+      if (calc_sum != sum)
+      {
+        continue;
+      }
       AnglePID.Kp = fArray[0];
       AnglePID.Ki = fArray[1];
       AnglePID.Kd = fArray[2];
