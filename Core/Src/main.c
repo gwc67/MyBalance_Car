@@ -88,7 +88,7 @@ typedef struct
 } stUARTFrameTdf;
 
 stUARTFrameTdf stUARTFrame = {
-    .usFrameHead = 0x5AA5,
+    .usFrameHead = 0x6AA6,
     .ucSumCheck = 1,
 
 };
@@ -105,13 +105,14 @@ void USART1_IRQHandler(void)
     // 停止DMA接受 ，以便读取当前接受了多少数据
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
 
-    uint32_t len = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
+    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
 
     LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);
 
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
 
-    for (int i = 0; i < len; i++)
+    uint32_t received = 10 - remaining;
+    for (int i = 0; i < received; i++)
     {
       ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
     }
@@ -120,21 +121,28 @@ void USART1_IRQHandler(void)
 
 void USART2_IRQHandler(void)
 {
-    if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
+  if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
+  {
+    LL_USART_ClearFlag_IDLE(USART2);
+    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
+    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);  // 剩余未传输字节数
+    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, 30);
+    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
+    uint32_t received = 30 - remaining;  // 实际接收的字节数
+    for (int i = 0; i < received; i++)
     {
-      LL_USART_ClearFlag_IDLE(USART2);
-      LL_DMA_DisableChannel(DMA1,LL_DMA_CHANNEL_6);
-      uint32_t len = LL_DMA_GetDataLength(DMA1,LL_DMA_CHANNEL_6);
-      LL_DMA_SetDataLength(DMA1,LL_DMA_CHANNEL_6,30);
-      LL_DMA_EnableChannel(DMA1,LL_DMA_CHANNEL_6);
-      for (int i = 0; i < len; i++)
-      {
-        ucRingBufWrite(&stRingBuf_t,dma_buf[i]);
-      }
-      
+      ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
     }
-    
+  }
 }
+
+
+union
+{
+  float fConvertFloat;
+  uint8_t ucConvertData[4];
+} unConvertUIN;
+
 /* USER CODE END 0 */
 
 /**
@@ -154,7 +162,6 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -192,14 +199,13 @@ int main(void)
   if (pstUartDevice_1 != NULL)
   {
     emUartInitInline(pstUartDevice_1);
-    emUartCallBackInline(pstUartDevice_1); 
-    emUartProcessInline(pstUartDevice_1); 
-    emUartStartRecvInline(pstUartDevice_1); 
-    emUartSendInline(pstUartDevice_1); 
+    emUartCallBackInline(pstUartDevice_1);
+    emUartProcessInline(pstUartDevice_1);
+    emUartStartRecvInline(pstUartDevice_1);
+    emUartSendInline(pstUartDevice_1);
   }
 
   vRingBufInit(&stRingBuf_t, 20, buf);
-  uint8_t temp_get_data;
 
   /* USER CODE END 2 */
 
@@ -225,7 +231,7 @@ int main(void)
     {
       uint8_t head1, head2, len, sum, temp;
       uint8_t calc_sum = 0;
-      uint8_t data_buf[10];
+      uint8_t data_buf[30];
       uint16_t temp_head;
 
       head1 = ucRingBufPeek(&stRingBuf_t, 0);
@@ -244,45 +250,41 @@ int main(void)
       ucRingBufRead(&stRingBuf_t, &len);
 
       calc_sum = head1 + head2 + len;
-      if (len > 10)
+      if (len > 14)
       {
-        continue;
+        continue; // continue理解为重新执行循环
       }
-
       for (int i = 0; i < len; i++)
       {
         ucRingBufRead(&stRingBuf_t, &data_buf[i]);
         calc_sum += data_buf[i];
       }
       ucRingBufRead(&stRingBuf_t, &sum);
-
-      if (calc_sum != sum)
+      float fArray[3];
+      for (int i = 0; i < len; i += 4)
       {
-        continue;
+        unConvertUIN.ucConvertData[0] = data_buf[i];
+        unConvertUIN.ucConvertData[1] = data_buf[i + 1];
+        unConvertUIN.ucConvertData[2] = data_buf[i + 2];
+        unConvertUIN.ucConvertData[3] = data_buf[i + 3];
+        fArray[i / 4] = unConvertUIN.fConvertFloat;
       }
 
-      char msg[10];
-      char msg1[10];
-      sprintf(msg, "length:%d\r\n", len);
-      BlueSerial_SendArray((uint8_t *)msg, strlen(msg));
-      sprintf(msg1, "calc_sum:%d\r\n", calc_sum);
-      BlueSerial_SendArray((uint8_t *)msg1, strlen(msg1));
-
-      if (data_buf[0] == 0x01 && data_buf[1] == 0x02)
-      {
-        BlueSerial_SendArray("OK!\r\n", 5);
-      }
-      OLED_Clear();
-      OLED_Printf(0,0,OLED_8X16,"%s",msg);
-      OLED_Printf(0,16,OLED_8X16,"%s",msg1);
-      OLED_Update();
-      // ucRingBufRead(&stRingBuf_t,&temp_get_data);
-
-      // Serial_SendByte_LL(temp_get_data);
+      // if (calc_sum != sum)
+      // {
+      //   continue;
+      // }
+      AnglePID.Kp = fArray[0];
+      AnglePID.Ki = fArray[1];
+      AnglePID.Kd = fArray[2];
+      Menu_SyncVarToFlash(&(AnglePID.Kp));
+      Menu_SyncVarToFlash(&(AnglePID.Ki));
+      Menu_SyncVarToFlash(&(AnglePID.Kd));
+      Menu_FlashSave();
     }
-    //  OLED_Clear();
-    //   Menu_Choose();
-    //   OLED_Update();
+     OLED_Clear();
+      Menu_Choose();
+      OLED_Update();
 
     // if (BlueSerial_RxFlag)
     // {
