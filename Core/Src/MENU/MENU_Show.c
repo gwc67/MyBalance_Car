@@ -45,7 +45,7 @@ void Menu_Init(void)
     head.kind = MENU_Folder;
  
     MENU* AAA = dynamicCreate_Menu_Folder(&head,"Angle");
-    MENU* BBB = dynamicCreate_Menu_Folder(&head,"Gyro");
+    // MENU* BBB = dynamicCreate_Menu_Folder(&head,"Gyro");
     MENU* CCC = dynamicCreate_Menu_Folder(&head,"Speed");
     MENU* DDD = dynamicCreate_Menu_Folder(&head,"Turn");
     dynamicCreate_Menu_Number(AAA, "Kp", &AnglePID.Kp, float_Box);
@@ -55,9 +55,9 @@ void Menu_Init(void)
     dynamicCreate_Menu_NumberNoFlash(AAA, "actual", &Angle , float_Box);
     dynamicCreate_Menu_NumberNoFlash(AAA, "out", &AnglePID.Out , float_Box);
     
-    dynamicCreate_Menu_Number(BBB, "KpW", &GyroPID.Kp , float_Box);
-    dynamicCreate_Menu_Number(BBB, "Kiw", &GyroPID.Ki , float_Box);
-    dynamicCreate_Menu_Number(BBB, "Kdw", &GyroPID.Kd , float_Box);
+    // dynamicCreate_Menu_Number(BBB, "KpW", &GyroPID.Kp , float_Box);
+    // dynamicCreate_Menu_Number(BBB, "Kiw", &GyroPID.Ki , float_Box);
+    // dynamicCreate_Menu_Number(BBB, "Kdw", &GyroPID.Kd , float_Box);
     
     dynamicCreate_Menu_Number(CCC, "KpS", &SpeedPID.Kp , float_Box);
     dynamicCreate_Menu_Number(CCC, "KiS", &SpeedPID.Ki , float_Box);

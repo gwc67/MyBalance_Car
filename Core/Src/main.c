@@ -125,17 +125,16 @@ void USART2_IRQHandler(void)
   {
     LL_USART_ClearFlag_IDLE(USART2);
     LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
-    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6);  // 剩余未传输字节数
+    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6); // 剩余未传输字节数
     LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, 30);
     LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
-    uint32_t received = 30 - remaining;  // 实际接收的字节数
+    uint32_t received = 30 - remaining; // 实际接收的字节数
     for (int i = 0; i < received; i++)
     {
       ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
     }
   }
 }
-
 
 union
 {
@@ -248,7 +247,7 @@ int main(void)
       ucRingBufRead(&stRingBuf_t, &head1);
       ucRingBufRead(&stRingBuf_t, &head2);
       ucRingBufRead(&stRingBuf_t, &len);
-
+      
       calc_sum = head1 + head2 + len;
       if (len > 14)
       {
@@ -259,6 +258,7 @@ int main(void)
         ucRingBufRead(&stRingBuf_t, &data_buf[i]);
         calc_sum += data_buf[i];
       }
+      BlueSerial_SendArray(data_buf,len);
       ucRingBufRead(&stRingBuf_t, &sum);
       float fArray[3];
       for (int i = 0; i < len; i += 4)
@@ -274,17 +274,17 @@ int main(void)
       {
         continue;
       }
-      AnglePID.Kp = fArray[0];
-      AnglePID.Ki = fArray[1];
-      AnglePID.Kd = fArray[2];
-      Menu_SyncVarToFlash(&(AnglePID.Kp));
-      Menu_SyncVarToFlash(&(AnglePID.Ki));
-      Menu_SyncVarToFlash(&(AnglePID.Kd));
+      SpeedPID.Kp = fArray[0];
+      SpeedPID.Ki = fArray[1];
+      SpeedPID.Kd = fArray[2];
+      Menu_SyncVarToFlash(&(SpeedPID.Kp));
+      Menu_SyncVarToFlash(&(SpeedPID.Ki));
+      Menu_SyncVarToFlash(&(SpeedPID.Kd));
       Menu_FlashSave();
     }
-     OLED_Clear();
-      Menu_Choose();
-      OLED_Update();
+    OLED_Clear();
+    Menu_Choose();
+    OLED_Update();
 
     // if (BlueSerial_RxFlag)
     // {

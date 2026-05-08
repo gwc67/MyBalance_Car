@@ -53,9 +53,9 @@ float Angle;
 float GyroY_Actual;
 float AveSpeed,DifSpeed;//平均、差分速度
 PID_t AnglePID = {
-    .Kd = 0,  //12
+    .Kd = 0.3,  //12
     .Ki = 0,
-    .Kp = 0,    //7.2
+    .Kp = 10.5,    //7.2
     // .Kd = 12,  //12                          // 4.19
     // .Ki = 0.1,                      
     // .Kp = 7.2,    //7.2                      // 9.0     
@@ -304,14 +304,23 @@ void TIM1_UP_IRQHandler ()
 			{
 				/*角度环调控*/
 				AnglePID.Actual=Angle;
-				PID_Update(&AnglePID);
+        AnglePID.Out = AnglePID.Kp * (AnglePID.Target - AnglePID.Actual) - AnglePID.Kd * GyroY_Actual;
+        if (AnglePID.Out > 60)
+        {
+          AnglePID.Out = 60;
+        }
+        else if(AnglePID.Out < -60){
+          AnglePID.Out = -60;
+        }
+        
+				// PID_Update(&AnglePID);
 				
 			 /*角速度环调控*/
-				GyroPID.Target=AnglePID.Out;
-				GyroPID.Actual=GyroY_Actual;
-				PID_Update(&GyroPID);
+				// GyroPID.Target=AnglePID.Out;
+				// GyroPID.Actual=GyroY_Actual;
+				// PID_Update(&GyroPID);
 				
-				AvePwm=-(AnglePID.Out+GyroPID.Out);
+				AvePwm=-(AnglePID.Out);
 				
 				SpeedL=AvePwm+DifPwm/2;
 				SpeedR=AvePwm-DifPwm/2;
@@ -328,12 +337,12 @@ void TIM1_UP_IRQHandler ()
 			
 		}
 		Count1++;
-		if (Count1>=50)//50ms定时
+		if (Count1>=30)//50ms定时
 		{
 			Count1=0;
 			//编码电机速度：编码器测速值/极数/时间/减速比
-			SpeedL= Encode_Get_left() /44.0/0.05/20;
-			SpeedR=Encode_Get_right()/44.0/0.05/20;
+			SpeedL= Encode_Get_left() /44.0/0.03/20;
+			SpeedR=Encode_Get_right()/44.0/0.03/20;
 			
 			AveSpeed=(SpeedL+SpeedR)/2.0;
 			DifSpeed=SpeedL-SpeedR;
