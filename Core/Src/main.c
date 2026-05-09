@@ -79,13 +79,7 @@ uint8_t rece_it_data;
 
 uint8_t buf[30];
 
-typedef struct
-{
-  uint16_t usFrameHead;
 
-  uint8_t ucSumCheck; // 0 无校验 1 和校验
-
-} stUARTFrameTdf;
 
 stUARTFrameTdf stUARTFrame = {
     .usFrameHead = 0x6AA6,
@@ -190,10 +184,15 @@ int main(void)
   OLED_Init();
   Menu_Init();
 
-  stUartPrivTdf stUartPriv_1 = {
-      .pstHandle = USART1,
+  uint8_t temp_buf;
+  stUartParamInitTdf stUartParamInit_1 = {
+    .pstHandle = USART2, 
+    .pucRxRingBuf = 
   };
-  stUartDeviceTdf *pstUartDevice_1 = pstUartDeviceCreate(&stUartPriv_1);
+  // stUartPrivTdf stUartPriv_1 = {
+  //     .pstHandle = USART1,
+  // };
+  stUartDeviceTdf *pstUartDevice_1 = pstUartDeviceCreate(&stUartParamInit_1);
 
   if (pstUartDevice_1 != NULL)
   {

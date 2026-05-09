@@ -3,6 +3,12 @@
 
 #include "main.h"
 #include "Uart.h"
+
+#define UART_DEV_NUM_MAX    3
+#define UART_DEVICE_1               emUartDevNum0
+#define UART_DEVICE_2               emUartDevNum1
+#define UART_DEVICE_3               emUartDevNum2
+
 typedef enum
 {
     emUartErrNone,
@@ -11,6 +17,27 @@ typedef enum
 
 } emUartErrTdf;
 
+typedef enum 
+{
+    emUartDevNum0   = 0,
+    emUartDevNum1,
+    emUartDevNum2,
+} emUartDevNumTdf;
+
+typedef enum
+{
+    emChecksumType_None = 0,
+    emChecksumType_Sum,
+}emChecksumTypeTdf;
+
+
+typedef struct
+{
+  uint16_t usFrameHead;
+
+  uint8_t ucSumCheck; // 0 无校验 1 和校验
+
+} stUARTFrameTdf;
 // 结构体的声明方法
 typedef struct stUartOpsTdf stUartOpsTdf;
 
@@ -32,13 +59,39 @@ typedef struct stUartOpsTdf
 
 } stUartOpsTdf, *pstUartOpsTdf;
 
-typedef struct
+
+
+typedef struct 
+{
+    uint32_t ulBaterate;
+    uint32_t ulWordLength;
+    uint32_t ulStopBits; 
+    uint32_t ulParity;
+    uint32_t ulMode;
+}stUartConfigTdf;
+
+
+//   USART_InitStruct.BaudRate = 9600;
+//   USART_InitStruct.DataWidth = LL_USART_DATAWIDTH_8B;
+//   USART_InitStruct.StopBits = LL_USART_STOPBITS_1;
+//   USART_InitStruct.Parity = LL_USART_PARITY_NONE;
+//   USART_InitStruct.TransferDirection = LL_USART_DIRECTION_TX_RX;
+//   USART_InitStruct.HardwareFlowControl = LL_USART_HWCONTROL_NONE;
+//   USART_InitStruct.OverSampling = LL_USART_OVERSAMPLING_16;
+
+typedef struct 
 {
     USART_TypeDef *pstHandle;
-} stUartPrivTdf;
+    uint8_t        *pucRxRingBuf;
+    uint32_t        ulRxRingBufSize;
+    uint32_t        ulDmaRxBufSize;
+    stUARTFrameTdf  stFrameCfg;  // 帧格式配置体
+    stUartConfigTdf  stUartCfg;  // USART参数配置
+}stUartParamInitTdf;
 
 
-stUartDeviceTdf* pstUartDeviceCreate(stUartPrivTdf *pstUartPriv);
+
+stUartDeviceTdf* pstUartDeviceCreate(stUartParamInitTdf *pstUartPriv);
 
 
 static inline emUartErrTdf emUartInitInline(stUartDeviceTdf* pstDev)
