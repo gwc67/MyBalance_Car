@@ -117,25 +117,10 @@ void USART2_IRQHandler(void)
 {
   if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
   {
-    // LL_USART_ClearFlag_IDLE(USART2);
-    // LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
-    // uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6); // 剩余未传输字节数
-    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, 30);
-    // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
-    // uint32_t received = 30 - remaining; // 实际接收的字节数
-    // for (int i = 0; i < received; i++)
-    // {
-    //   ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
-    // }
     emUartCallBackInline(gapstUartDevice[UART_DEVICE_1]);
   }
 }
 
-union
-{
-  float fConvertFloat;
-  uint8_t ucConvertData[4];
-} unConvertUIN;
 
 /* USER CODE END 0 */
 
@@ -211,7 +196,6 @@ int main(void)
   if ( gapstUartDevice[UART_DEVICE_1] != NULL)
   {
     emUartInitInline( gapstUartDevice[UART_DEVICE_1]);
-    emUartProcessInline( gapstUartDevice[UART_DEVICE_1]);
     emUartStartRecvInline( gapstUartDevice[UART_DEVICE_1]);
     emUartSendInline( gapstUartDevice[UART_DEVICE_1],"123",4);
   }
@@ -237,63 +221,69 @@ int main(void)
     {
       RunFlag = !RunFlag;
     }
-
-    if (ucRingBufGetLength(&stRingBuf_t) > 5)
+    uint8_t out_data[2] = {0x01,0x01};
+    emUartProcessInline( gapstUartDevice[UART_DEVICE_1],out_data,2);
+    if (out_data[0] == 0x00 || out_data[1] == 0x00)
     {
-      uint8_t head1, head2, len, sum, temp;
-      uint8_t calc_sum = 0;
-      uint8_t data_buf[30];
-      uint16_t temp_head;
-
-      head1 = ucRingBufPeek(&stRingBuf_t, 0);
-      head2 = ucRingBufPeek(&stRingBuf_t, 1);
-
-      temp_head = ((uint16_t)head1 << 8) | head2;
-
-      if (temp_head != stUARTFrame.usFrameHead)
-      {
-        ucRingBufRead(&stRingBuf_t, &temp);
-        continue;
-      }
-
-      ucRingBufRead(&stRingBuf_t, &head1);
-      ucRingBufRead(&stRingBuf_t, &head2);
-      ucRingBufRead(&stRingBuf_t, &len);
-
-      calc_sum = head1 + head2 + len;
-      if (len > 14)
-      {
-        continue; // continue理解为重新执行循环
-      }
-      for (int i = 0; i < len; i++)
-      {
-        ucRingBufRead(&stRingBuf_t, &data_buf[i]);
-        calc_sum += data_buf[i];
-      }
-      BlueSerial_SendArray(data_buf, len);
-      ucRingBufRead(&stRingBuf_t, &sum);
-      float fArray[3];
-      for (int i = 0; i < len; i += 4)
-      {
-        unConvertUIN.ucConvertData[0] = data_buf[i];
-        unConvertUIN.ucConvertData[1] = data_buf[i + 1];
-        unConvertUIN.ucConvertData[2] = data_buf[i + 2];
-        unConvertUIN.ucConvertData[3] = data_buf[i + 3];
-        fArray[i / 4] = unConvertUIN.fConvertFloat;
-      }
-
-      if (calc_sum != sum)
-      {
-        continue;
-      }
-      SpeedPID.Kp = fArray[0];
-      SpeedPID.Ki = fArray[1];
-      SpeedPID.Kd = fArray[2];
-      Menu_SyncVarToFlash(&(SpeedPID.Kp));
-      Menu_SyncVarToFlash(&(SpeedPID.Ki));
-      Menu_SyncVarToFlash(&(SpeedPID.Kd));
-      Menu_FlashSave();
+        BlueSerial_SendArray((uint8_t*)"OK!\r\n",5);
     }
+    
+    // if (ucRingBufGetLength(&stRingBuf_t) > 5)
+    // {
+    //   uint8_t head1, head2, len, sum, temp;
+    //   uint8_t calc_sum = 0;
+    //   uint8_t data_buf[30];
+    //   uint16_t temp_head;
+
+    //   head1 = ucRingBufPeek(&stRingBuf_t, 0);
+    //   head2 = ucRingBufPeek(&stRingBuf_t, 1);
+
+    //   temp_head = ((uint16_t)head1 << 8) | head2;
+
+    //   if (temp_head != stUARTFrame.usFrameHead)
+    //   {
+    //     ucRingBufRead(&stRingBuf_t, &temp);
+    //     continue;
+    //   }
+
+    //   ucRingBufRead(&stRingBuf_t, &head1);
+    //   ucRingBufRead(&stRingBuf_t, &head2);
+    //   ucRingBufRead(&stRingBuf_t, &len);
+
+    //   calc_sum = head1 + head2 + len;
+    //   if (len > 14)
+    //   {
+    //     continue; // continue理解为重新执行循环
+    //   }
+    //   for (int i = 0; i < len; i++)
+    //   {
+    //     ucRingBufRead(&stRingBuf_t, &data_buf[i]);
+    //     calc_sum += data_buf[i];
+    //   }
+    //   BlueSerial_SendArray(data_buf, len);
+    //   ucRingBufRead(&stRingBuf_t, &sum);
+    //   float fArray[3];
+    //   for (int i = 0; i < len; i += 4)
+    //   {
+    //     unConvertUIN.ucConvertData[0] = data_buf[i];
+    //     unConvertUIN.ucConvertData[1] = data_buf[i + 1];
+    //     unConvertUIN.ucConvertData[2] = data_buf[i + 2];
+    //     unConvertUIN.ucConvertData[3] = data_buf[i + 3];
+    //     fArray[i / 4] = unConvertUIN.fConvertFloat;
+    //   }
+
+    //   if (calc_sum != sum)
+    //   {
+    //     continue;
+    //   }
+    //   SpeedPID.Kp = fArray[0];
+    //   SpeedPID.Ki = fArray[1];
+    //   SpeedPID.Kd = fArray[2];
+    //   Menu_SyncVarToFlash(&(SpeedPID.Kp));
+    //   Menu_SyncVarToFlash(&(SpeedPID.Ki));
+    //   Menu_SyncVarToFlash(&(SpeedPID.Kd));
+    //   Menu_FlashSave();
+    // }
     OLED_Clear();
     Menu_Choose();
     OLED_Update();

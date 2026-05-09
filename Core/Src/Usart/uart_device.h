@@ -60,7 +60,7 @@ typedef struct stUartOpsTdf
     emUartErrTdf (*pfSendData)(stUartDeviceTdf *pstDev, uint8_t *pucData, uint16_t usSize);   
     emUartErrTdf (*pfStartRecvData)(stUartDeviceTdf *pstDev);
     emUartErrTdf (*pfOnRxCallBackData)(stUartDeviceTdf *pstDev);
-    emUartErrTdf (*pfProcessData)(stUartDeviceTdf *pstDev);
+    emUartErrTdf (*pfProcessData)(stUartDeviceTdf *pstDev,uint8_t* ucOutData,uint16_t usLen);
 
 } stUartOpsTdf, *pstUartOpsTdf;
 
@@ -128,14 +128,14 @@ static inline emUartErrTdf emUartCallBackInline(stUartDeviceTdf* pstDev)
     
     return pstDev->pstOps->pfOnRxCallBackData(pstDev);
 }
-static inline emUartErrTdf emUartProcessInline(stUartDeviceTdf* pstDev)
+static inline emUartErrTdf emUartProcessInline(stUartDeviceTdf *pstDev,uint8_t* ucOutData,uint16_t usLen)
 {
     if (pstDev == NULL || pstDev->pstOps == NULL || pstDev->pstOps->pfProcessData == NULL)
     {
         return emUartErrSoftWare;
     }
     
-    return pstDev->pstOps->pfProcessData(pstDev);
+    return pstDev->pstOps->pfProcessData(pstDev,ucOutData,usLen);
 }
 static inline emUartErrTdf emUartStartRecvInline(stUartDeviceTdf* pstDev)
 {

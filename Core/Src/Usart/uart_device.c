@@ -158,23 +158,103 @@ static emUartErrTdf s_emUartCallBack(stUartDeviceTdf *pstDev)
     for (int i = 0; i < received; i++)
     {
         ucRingBufWrite(pstPriv->pstRxRingBuf, pstPriv->pucDmaRxBuf[i]);
-        LL_USART_TransmitData8(pstPriv->pstHandle, pstPriv->pucDmaRxBuf[i]);
-        while (LL_USART_IsActiveFlag_TXE(pstPriv->pstHandle) == RESET)
-            ;
+                                                                            //对接受的数据进行回传
+        // LL_USART_TransmitData8(pstPriv->pstHandle, pstPriv->pucDmaRxBuf[i]);
+        // while (LL_USART_IsActiveFlag_TXE(pstPriv->pstHandle) == RESET)
+        //     ;
     }
     return emUartErrNone;
 }
-static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev)
+
+union
+{
+    float fConvertFloat;
+    uint8_t ucConvertData[4];
+} unConvertUIN;
+
+// usLen 想要获取的数据的长度
+static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev, uint8_t *ucOutData, uint16_t usLen)
 {
 
     stUartPrivTdf *pstPriv = pstDev->pvPrivData;
-    char msg[] = "Process\r\n";
-    for (int i = 0; i < strlen(msg); i++)
+    if (pstPriv == NULL || pstPriv->pstHandle == NULL)
     {
-        LL_USART_TransmitData8(USART2, msg[i]);
-        while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
-            ;
+        return emUartErrSoftWare;
     }
+
+    if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 5)
+    {
+        uint8_t head1, head2, len, sum, temp;
+        uint8_t calc_sum = 0;
+        // uint8_t data_buf[30];
+        uint16_t temp_head;
+
+        head1 = ucRingBufPeek(pstPriv->pstRxRingBuf, 0);
+        head2 = ucRingBufPeek(pstPriv->pstRxRingBuf, 1);
+
+        temp_head = ((uint16_t)head1 << 8) | head2;
+
+        if (temp_head != pstPriv->stFrameCfg.usFrameHead)
+        {
+            ucRingBufRead(pstPriv->pstRxRingBuf, &temp);
+            return emUartErrSoftWare;
+        }
+
+        ucRingBufRead(pstPriv->pstRxRingBuf, &head1);
+        ucRingBufRead(pstPriv->pstRxRingBuf, &head2);
+        ucRingBufRead(pstPriv->pstRxRingBuf, &len);
+
+        calc_sum = head1 + head2 + len;
+        if (len > 14)
+        {
+            return emUartErrSoftWare;
+            // continue理解为重新执行循环
+        }
+        for (int i = 0; i < len; i++)
+        {
+            uint8_t byte;
+            ucRingBufRead(pstPriv->pstRxRingBuf, &byte);
+            calc_sum += byte;
+            if (i < usLen)
+            {
+                ucOutData[i] = byte;
+            }
+        }
+        if (pstPriv->stFrameCfg.ucSumCheck == 1)
+        {
+            ucRingBufRead(pstPriv->pstRxRingBuf, &sum);
+            if (calc_sum != sum)
+            {
+                return emUartErrSoftWare;
+            }
+        }
+        // BlueSerial_SendArray(data_buf, len);
+        // float fArray[3];
+        // for (int i = 0; i < len; i += 4)
+        // {
+        //     unConvertUIN.ucConvertData[0] = data_buf[i];
+        //     unConvertUIN.ucConvertData[1] = data_buf[i + 1];
+        //     unConvertUIN.ucConvertData[2] = data_buf[i + 2];
+        //     unConvertUIN.ucConvertData[3] = data_buf[i + 3];
+        //     fArray[i / 4] = unConvertUIN.fConvertFloat;
+        // }
+
+        // SpeedPID.Kp = fArray[0];
+        // SpeedPID.Ki = fArray[1];
+        // SpeedPID.Kd = fArray[2];
+        // Menu_SyncVarToFlash(&(SpeedPID.Kp));
+        // Menu_SyncVarToFlash(&(SpeedPID.Ki));
+        // Menu_SyncVarToFlash(&(SpeedPID.Kd));
+        // Menu_FlashSave();
+    }
+    return emUartErrNone;
+    // char msg[] = "Process\r\n";
+    // for (int i = 0; i < strlen(msg); i++)
+    // {
+    //     LL_USART_TransmitData8(USART2, msg[i]);
+    //     while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
+    //         ;
+    // }
 }
 
 stUartOpsTdf stUartOps = {
