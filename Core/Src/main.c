@@ -92,22 +92,24 @@ void USART1_IRQHandler(void)
   if (LL_USART_IsActiveFlag_IDLE(USART1) && LL_USART_IsEnabledIT_IDLE(USART1))
   {
 
-    LL_USART_ClearFlag_IDLE(USART1);
+    // LL_USART_ClearFlag_IDLE(USART1);
 
-    // 停止DMA接受 ，以便读取当前接受了多少数据
-    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
+    // // 停止DMA接受 ，以便读取当前接受了多少数据
+    // LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
 
-    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
+    // uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
 
-    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);
+    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);   
 
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
+    // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
 
-    uint32_t received = 10 - remaining;
-    for (int i = 0; i < received; i++)
-    {
-      ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
-    }
+    // uint32_t received = 10 - remaining;
+    // for (int i = 0; i < received; i++)
+    // {
+    //   ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
+    // }
+    // emUartCallBackInline( gapstUartDevice[UART_DEVICE_1]);
+
   }
 }
 
@@ -115,16 +117,17 @@ void USART2_IRQHandler(void)
 {
   if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
   {
-    LL_USART_ClearFlag_IDLE(USART2);
-    LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
-    uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6); // 剩余未传输字节数
-    LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, 30);
-    LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
-    uint32_t received = 30 - remaining; // 实际接收的字节数
-    for (int i = 0; i < received; i++)
-    {
-      ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
-    }
+    // LL_USART_ClearFlag_IDLE(USART2);
+    // LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_6);
+    // uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_6); // 剩余未传输字节数
+    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_6, 30);
+    // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_6);
+    // uint32_t received = 30 - remaining; // 实际接收的字节数
+    // for (int i = 0; i < received; i++)
+    // {
+    //   ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
+    // }
+    emUartCallBackInline(gapstUartDevice[UART_DEVICE_1]);
   }
 }
 
@@ -188,6 +191,7 @@ int main(void)
       .pucRxRingBuf = temp_RxRingBuf,
       .ulRxRingBufSize = 200,
       .ulDmaRxBufSize = 20,
+      
       .stFrameCfg = {0x6AA6, emChecksumType_Sum},
       .stUartCfg = {
           .ulBaterate = 9600,
@@ -195,23 +199,24 @@ int main(void)
           .ulParity = LL_USART_PARITY_NONE,
           .ulStopBits = LL_USART_STOPBITS_1,
           .ulWordLength = LL_USART_DATAWIDTH_8B,
-      }
+      },
+      .pstDmaHandle = DMA1,
+      .ulDmaChannel = LL_DMA_CHANNEL_6,
     };
   // stUartPrivTdf stUartPriv_1 = {
   //     .pstHandle = USART1,
   // };
-  stUartDeviceTdf *pstUartDevice_1 = pstUartDeviceCreate(&stUartParamInit_1);
-
-  if (pstUartDevice_1 != NULL)
+  gapstUartDevice[UART_DEVICE_1] = pstUartDeviceCreate(&stUartParamInit_1);
+  
+  if ( gapstUartDevice[UART_DEVICE_1] != NULL)
   {
-    emUartInitInline(pstUartDevice_1);
-    emUartCallBackInline(pstUartDevice_1);
-    emUartProcessInline(pstUartDevice_1);
-    emUartStartRecvInline(pstUartDevice_1);
-    emUartSendInline(pstUartDevice_1);
+    emUartInitInline( gapstUartDevice[UART_DEVICE_1]);
+    emUartProcessInline( gapstUartDevice[UART_DEVICE_1]);
+    emUartStartRecvInline( gapstUartDevice[UART_DEVICE_1]);
+    emUartSendInline( gapstUartDevice[UART_DEVICE_1],"123",4);
   }
 
-  vRingBufInit(&stRingBuf_t, 20, buf);
+  // vRingBufInit(&stRingBuf_t, 20, buf);
 
   /* USER CODE END 2 */
 

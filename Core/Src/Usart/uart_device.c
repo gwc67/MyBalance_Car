@@ -1,11 +1,13 @@
 #include "uart_device.h"
 
+pstUartDeviceTdf gapstUartDevice[3] = {0};
+
 typedef struct
 {
     stUartDeviceTdf *pstSelf;
-    USART_TypeDef *pstHandle;   // 指向父设备
-    DMA_TypeDef   *pstDmaHandle;
-    uint32_t       ulDmaChannel;
+    USART_TypeDef *pstHandle; // 指向父设备
+    DMA_TypeDef *pstDmaHandle;
+    uint32_t ulDmaChannel;
     pstRingBufTdf pstRxRingBuf; // 接受环形缓冲区，等效   vRingBufInit(&stRingBuf_t, 20, buf);  stRingBuf_t
     uint8_t *pucDmaRxBuf;
     uint32_t ulDmaRxBufSize; // DMA缓冲区大小；
@@ -44,8 +46,8 @@ static emUartErrTdf s_emUartInit(stUartDeviceTdf *pstDev)
         {
             return emUartErrHardWare;
         }
-  
-        LL_USART_SetBaudRate(pstPriv->pstHandle, periphclk , pstPriv->stUartCfg.ulBaterate);
+
+        LL_USART_SetBaudRate(pstPriv->pstHandle, periphclk, pstPriv->stUartCfg.ulBaterate);
 
         LL_USART_SetDataWidth(pstPriv->pstHandle, pstPriv->stUartCfg.ulWordLength);
 
@@ -58,78 +60,109 @@ static emUartErrTdf s_emUartInit(stUartDeviceTdf *pstDev)
         LL_USART_Enable(pstPriv->pstHandle);
     }
 
-
     if (pstPriv->pstDmaHandle != NULL && pstPriv->pucDmaRxBuf != NULL)
     {
         LL_DMA_DisableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
-        
+
         LL_DMA_ConfigAddresses(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel,
-                              LL_USART_DMA_GetRegAddr(pstPriv->pstHandle),
-                              (uint32_t)pstPriv->pucDmaRxBuf,
-                              LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
-        
+                               LL_USART_DMA_GetRegAddr(pstPriv->pstHandle),
+                               (uint32_t)pstPriv->pucDmaRxBuf,
+                               LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+        // 这个长度指的就是接受数组的长度
         LL_DMA_SetDataLength(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, pstPriv->ulDmaRxBufSize);
-        
+
         LL_DMA_SetMemoryIncMode(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_MEMORY_INCREMENT);
         LL_DMA_SetPeriphIncMode(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_PERIPH_NOINCREMENT);
-        
+
         LL_DMA_SetMemorySize(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_MDATAALIGN_BYTE);
         LL_DMA_SetPeriphSize(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_PDATAALIGN_BYTE);
-        
+
         LL_DMA_SetMode(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_MODE_CIRCULAR);
-        LL_DMA_SetPriority(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_PRIORITY_MEDIUM);
-        
+        LL_DMA_SetChannelPriorityLevel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, LL_DMA_PRIORITY_MEDIUM);
+
         LL_USART_EnableIT_IDLE(pstPriv->pstHandle);
         LL_USART_EnableDMAReq_RX(pstPriv->pstHandle);
-        
+
         LL_DMA_EnableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
     }
-    
-    char msg[] = "Init!\r\n";
-    for (int i = 0; i < strlen(msg); i++)
-    {
-        LL_USART_TransmitData8(USART2, msg[i]);
-        while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
-            ;
-    }
+    return emUartErrNone;
 
+    // char msg[] = "Init!\r\n";
+    // for (int i = 0; i < strlen(msg); i++)
+    // {
+    //     LL_USART_TransmitData8(USART2, msg[i]);
+    //     while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
+    //         ;
+    // }
 }
 
-static emUartErrTdf s_emUartSend(stUartDeviceTdf *pstDev)
+static emUartErrTdf s_emUartSend(stUartDeviceTdf *pstDev, uint8_t *pucData, uint16_t usSize)
 {
 
     stUartPrivTdf *pstPriv = pstDev->pvPrivData;
-    char msg[] = "Send\r\n";
-    for (int i = 0; i < strlen(msg); i++)
+    if (pstPriv == NULL || pstPriv->pstHandle == NULL)
     {
-        LL_USART_TransmitData8(USART2, msg[i]);
-        while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
+        return emUartErrSoftWare;
+    }
+
+    for (int i = 0; i < usSize; i++)
+    {
+        LL_USART_TransmitData8(pstPriv->pstHandle, pucData[i]);
+        while (LL_USART_IsActiveFlag_TXE(pstPriv->pstHandle) == RESET)
             ;
     }
+    return emUartErrNone;
 }
+
+// 这是一个启动接受的函数
 static emUartErrTdf s_emUartRecv(stUartDeviceTdf *pstDev)
 {
 
     stUartPrivTdf *pstPriv = pstDev->pvPrivData;
-    char msg[] = "Recv\r\n";
-    for (int i = 0; i < strlen(msg); i++)
+    if (pstPriv == NULL || pstPriv->pstHandle == NULL)
     {
-        LL_USART_TransmitData8(USART2, msg[i]);
-        while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
-            ;
+        return emUartErrSoftWare;
     }
+    LL_DMA_ConfigAddresses(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel,
+                           LL_USART_DMA_GetRegAddr(pstPriv->pstHandle),
+                           (uint32_t)pstPriv->pucDmaRxBuf,
+                           LL_DMA_DIRECTION_PERIPH_TO_MEMORY);
+    LL_USART_EnableIT_IDLE(pstPriv->pstHandle);
+    LL_USART_EnableDMAReq_RX(pstPriv->pstHandle);
+    // char msg[] = "Recv\r\n";
+    // for (int i = 0; i < strlen(msg); i++)
+    // {
+    //     LL_USART_TransmitData8(USART2, msg[i]);
+    //     while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
+    //         ;
+    // }
+    return emUartErrNone;
 }
 static emUartErrTdf s_emUartCallBack(stUartDeviceTdf *pstDev)
 {
 
     stUartPrivTdf *pstPriv = pstDev->pvPrivData;
-    char msg[] = "CallBack\r\n";
-    for (int i = 0; i < strlen(msg); i++)
+
+    if (pstPriv == NULL || pstPriv->pstHandle == NULL)
     {
-        LL_USART_TransmitData8(USART2, msg[i]);
-        while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
+        return emUartErrSoftWare;
+    }
+
+    // 普通模式下 dma的设置
+    LL_USART_ClearFlag_IDLE(pstPriv->pstHandle);
+    LL_DMA_DisableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
+    uint32_t received = pstPriv->ulDmaRxBufSize - LL_DMA_GetDataLength(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
+    LL_DMA_SetDataLength(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, pstPriv->ulDmaRxBufSize);
+    LL_DMA_EnableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
+
+    for (int i = 0; i < received; i++)
+    {
+        ucRingBufWrite(pstPriv->pstRxRingBuf, pstPriv->pucDmaRxBuf[i]);
+        LL_USART_TransmitData8(pstPriv->pstHandle, pstPriv->pucDmaRxBuf[i]);
+        while (LL_USART_IsActiveFlag_TXE(pstPriv->pstHandle) == RESET)
             ;
     }
+    return emUartErrNone;
 }
 static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev)
 {

@@ -9,6 +9,8 @@
 #define UART_DEVICE_2               emUartDevNum1
 #define UART_DEVICE_3               emUartDevNum2
 
+
+
 typedef enum
 {
     emUartErrNone,
@@ -41,6 +43,7 @@ typedef struct
 // 结构体的声明方法
 typedef struct stUartOpsTdf stUartOpsTdf;
 
+//device的本质是使用对应的发送与接受函数
 typedef struct
 {
     stUartOpsTdf *pstOps;
@@ -49,10 +52,12 @@ typedef struct
 
 } stUartDeviceTdf, *pstUartDeviceTdf;
 
+extern  pstUartDeviceTdf gapstUartDevice[3];
+
 typedef struct stUartOpsTdf
 {
     emUartErrTdf (*pfInit)(stUartDeviceTdf *pstDev);
-    emUartErrTdf (*pfSendData)(stUartDeviceTdf *pstDev);
+    emUartErrTdf (*pfSendData)(stUartDeviceTdf *pstDev, uint8_t *pucData, uint16_t usSize);   
     emUartErrTdf (*pfStartRecvData)(stUartDeviceTdf *pstDev);
     emUartErrTdf (*pfOnRxCallBackData)(stUartDeviceTdf *pstDev);
     emUartErrTdf (*pfProcessData)(stUartDeviceTdf *pstDev);
@@ -105,14 +110,14 @@ static inline emUartErrTdf emUartInitInline(stUartDeviceTdf* pstDev)
     
     return pstDev->pstOps->pfInit(pstDev);
 }
-static inline emUartErrTdf emUartSendInline(stUartDeviceTdf* pstDev)
+static inline emUartErrTdf emUartSendInline(stUartDeviceTdf* pstDev, uint8_t *pucData, uint16_t usSize)
 {
     if (pstDev == NULL || pstDev->pstOps == NULL || pstDev->pstOps->pfSendData == NULL)
     {
         return emUartErrSoftWare;
     }
     
-    return pstDev->pstOps->pfSendData(pstDev);
+    return pstDev->pstOps->pfSendData(pstDev, pucData, usSize);
 }
 static inline emUartErrTdf emUartCallBackInline(stUartDeviceTdf* pstDev)
 {
