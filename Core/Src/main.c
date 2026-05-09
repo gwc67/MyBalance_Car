@@ -79,8 +79,6 @@ uint8_t rece_it_data;
 
 uint8_t buf[30];
 
-
-
 stUARTFrameTdf stUARTFrame = {
     .usFrameHead = 0x6AA6,
     .ucSumCheck = 1,
@@ -184,11 +182,21 @@ int main(void)
   OLED_Init();
   Menu_Init();
 
-  uint8_t temp_buf;
+  uint8_t temp_RxRingBuf[200];
   stUartParamInitTdf stUartParamInit_1 = {
-    .pstHandle = USART2, 
-    .pucRxRingBuf = 
-  };
+      .pstHandle = USART2,
+      .pucRxRingBuf = temp_RxRingBuf,
+      .ulRxRingBufSize = 200,
+      .ulDmaRxBufSize = 20,
+      .stFrameCfg = {0x6AA6, emChecksumType_Sum},
+      .stUartCfg = {
+          .ulBaterate = 9600,
+          .ulMode = LL_USART_DIRECTION_TX_RX,
+          .ulParity = LL_USART_PARITY_NONE,
+          .ulStopBits = LL_USART_STOPBITS_1,
+          .ulWordLength = LL_USART_DATAWIDTH_8B,
+      }
+    };
   // stUartPrivTdf stUartPriv_1 = {
   //     .pstHandle = USART1,
   // };
@@ -246,7 +254,7 @@ int main(void)
       ucRingBufRead(&stRingBuf_t, &head1);
       ucRingBufRead(&stRingBuf_t, &head2);
       ucRingBufRead(&stRingBuf_t, &len);
-      
+
       calc_sum = head1 + head2 + len;
       if (len > 14)
       {
@@ -257,7 +265,7 @@ int main(void)
         ucRingBufRead(&stRingBuf_t, &data_buf[i]);
         calc_sum += data_buf[i];
       }
-      BlueSerial_SendArray(data_buf,len);
+      BlueSerial_SendArray(data_buf, len);
       ucRingBufRead(&stRingBuf_t, &sum);
       float fArray[3];
       for (int i = 0; i < len; i += 4)

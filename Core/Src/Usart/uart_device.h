@@ -82,6 +82,8 @@ typedef struct
 typedef struct 
 {
     USART_TypeDef *pstHandle;
+    DMA_TypeDef   *pstDmaHandle;
+    uint32_t       ulDmaChannel;
     uint8_t        *pucRxRingBuf;
     uint32_t        ulRxRingBufSize;
     uint32_t        ulDmaRxBufSize;
