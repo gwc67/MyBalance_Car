@@ -85,7 +85,7 @@ stUARTFrameTdf stUARTFrame = {
 
 };
 
-extern uint8_t dma_buf[30];
+// extern uint8_t dma_buf[30];
 void USART1_IRQHandler(void)
 {
   // 检查是否接收到数据
@@ -99,7 +99,7 @@ void USART1_IRQHandler(void)
 
     // uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
 
-    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);   
+    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);
 
     // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
 
@@ -109,9 +109,26 @@ void USART1_IRQHandler(void)
     //   ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
     // }
     // emUartCallBackInline( gapstUartDevice[UART_DEVICE_1]);
-
   }
 }
+
+uint8_t temp_RxRingBuf[200];
+stUartParamInitTdf stUartParamInit_1 = {
+    .pstHandle = USART2,
+    .pucRxRingBuf = temp_RxRingBuf,
+    .ulRxRingBufSize = 200,
+    .ulDmaRxBufSize = 20,                       // 该步没有直接绑定DmaRxBuf，通过20来生成一个20大小的内存块直接把那个当DMAbuffer用
+    .stFrameCfg = {0x6AA6, emChecksumType_Sum},
+    .stUartCfg = {
+        .ulBaterate = 9600,
+        .ulMode = LL_USART_DIRECTION_TX_RX,
+        .ulParity = LL_USART_PARITY_NONE,
+        .ulStopBits = LL_USART_STOPBITS_1,
+        .ulWordLength = LL_USART_DATAWIDTH_8B,
+    },
+    .pstDmaHandle = DMA1,
+    .ulDmaChannel = LL_DMA_CHANNEL_6,
+};
 
 void USART2_IRQHandler(void)
 {
@@ -120,7 +137,6 @@ void USART2_IRQHandler(void)
     emUartCallBackInline(gapstUartDevice[UART_DEVICE_1]);
   }
 }
-
 
 /* USER CODE END 0 */
 
@@ -170,34 +186,13 @@ int main(void)
   OLED_Init();
   Menu_Init();
 
-  uint8_t temp_RxRingBuf[200];
-  stUartParamInitTdf stUartParamInit_1 = {
-      .pstHandle = USART2,
-      .pucRxRingBuf = temp_RxRingBuf,
-      .ulRxRingBufSize = 200,
-      .ulDmaRxBufSize = 20,
-      
-      .stFrameCfg = {0x6AA6, emChecksumType_Sum},
-      .stUartCfg = {
-          .ulBaterate = 9600,
-          .ulMode = LL_USART_DIRECTION_TX_RX,
-          .ulParity = LL_USART_PARITY_NONE,
-          .ulStopBits = LL_USART_STOPBITS_1,
-          .ulWordLength = LL_USART_DATAWIDTH_8B,
-      },
-      .pstDmaHandle = DMA1,
-      .ulDmaChannel = LL_DMA_CHANNEL_6,
-    };
-  // stUartPrivTdf stUartPriv_1 = {
-  //     .pstHandle = USART1,
-  // };
   gapstUartDevice[UART_DEVICE_1] = pstUartDeviceCreate(&stUartParamInit_1);
-  
-  if ( gapstUartDevice[UART_DEVICE_1] != NULL)
+
+  if (gapstUartDevice[UART_DEVICE_1] != NULL)
   {
-    emUartInitInline( gapstUartDevice[UART_DEVICE_1]);
-    emUartStartRecvInline( gapstUartDevice[UART_DEVICE_1]);
-    emUartSendInline( gapstUartDevice[UART_DEVICE_1],"123",4);
+    emUartInitInline(gapstUartDevice[UART_DEVICE_1]);
+    emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
+    emUartSendInline(gapstUartDevice[UART_DEVICE_1], "123", 4);
   }
 
   // vRingBufInit(&stRingBuf_t, 20, buf);
@@ -221,13 +216,13 @@ int main(void)
     {
       RunFlag = !RunFlag;
     }
-    uint8_t out_data[2] = {0x01,0x01};
-    emUartProcessInline( gapstUartDevice[UART_DEVICE_1],out_data,2);
+    uint8_t out_data[2] = {0x01, 0x01};
+    emUartProcessInline(gapstUartDevice[UART_DEVICE_1], out_data, 2);
     if (out_data[0] == 0x00 || out_data[1] == 0x00)
     {
-        BlueSerial_SendArray((uint8_t*)"OK!\r\n",5);
+      BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
-    
+
     // if (ucRingBufGetLength(&stRingBuf_t) > 5)
     // {
     //   uint8_t head1, head2, len, sum, temp;
