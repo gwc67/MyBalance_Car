@@ -27,6 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "ALL.h"
 #include "MPU6050.h"
+#include "ai_pid_serial.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -192,10 +193,8 @@ int main(void)
   {
     emUartInitInline(gapstUartDevice[UART_DEVICE_1]);
     emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
-    emUartSendInline(gapstUartDevice[UART_DEVICE_1], "123", 4);
+    AI_PID_Init();
   }
-
-  // vRingBufInit(&stRingBuf_t, 20, buf);
 
   /* USER CODE END 2 */
 
@@ -222,6 +221,8 @@ int main(void)
     {
       BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
+    
+    AI_PID_ReportData();
 
     // if (ucRingBufGetLength(&stRingBuf_t) > 5)
     // {
