@@ -27,7 +27,7 @@
 /* USER CODE BEGIN Includes */
 #include "ALL.h"
 #include "MPU6050.h"
-#include "ai_pid_serial.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -63,9 +63,6 @@ MPU6050_raw raw;
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
 extern float SpeedL, SpeedR;
-extern void Serial_Init_LL(void);
-extern void Serial_ProcessCommand_LL(void);
-extern void Serial_ReportData_LL(void);
 
 // extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
@@ -118,7 +115,7 @@ stUartParamInitTdf stUartParamInit_1 = {
     .pstHandle = USART2,
     .pucRxRingBuf = temp_RxRingBuf,
     .ulRxRingBufSize = 200,
-    .ulDmaRxBufSize = 20,                       // 该步没有直接绑定DmaRxBuf，通过20来生成一个20大小的内存块直接把那个当DMAbuffer用
+    .ulDmaRxBufSize = 64,
     .stFrameCfg = {0x6AA6, emChecksumType_Sum},
     .stUartCfg = {
         .ulBaterate = 9600,
@@ -130,10 +127,10 @@ stUartParamInitTdf stUartParamInit_1 = {
     .pstDmaHandle = DMA1,
     .ulDmaChannel = LL_DMA_CHANNEL_6,
 };
-
+ //6A A6 0C 00 00 4C 40 00 00 4C 40 00 00 00 00 34
 void USART2_IRQHandler(void)
 {
-  if (LL_USART_IsActiveFlag_IDLE(USART2) || LL_USART_IsEnabledIT_IDLE(USART2))
+  if (LL_USART_IsActiveFlag_IDLE(USART2) && LL_USART_IsEnabledIT_IDLE(USART2))
   {
     emUartCallBackInline(gapstUartDevice[UART_DEVICE_1]);
   }
@@ -187,13 +184,13 @@ int main(void)
   OLED_Init();
   Menu_Init();
 
+  //初始化自己的串口的标准操作
   gapstUartDevice[UART_DEVICE_1] = pstUartDeviceCreate(&stUartParamInit_1);
-
   if (gapstUartDevice[UART_DEVICE_1] != NULL)
   {
     emUartInitInline(gapstUartDevice[UART_DEVICE_1]);
     emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
-    AI_PID_Init();
+
   }
 
   /* USER CODE END 2 */
@@ -222,7 +219,7 @@ int main(void)
       BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
     
-    AI_PID_ReportData();
+
 
     // if (ucRingBufGetLength(&stRingBuf_t) > 5)
     // {

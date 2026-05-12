@@ -1,3 +1,4 @@
+
 #ifndef __UART_DEVICE_H
 #define __UART_DEVICE_H
 
@@ -96,6 +97,7 @@ typedef struct
     stUartConfigTdf  stUartCfg;  // USART参数配置
 }stUartParamInitTdf;
 
+extern pstUartDeviceTdf gapstUartDevice[3] ;
 
 
 stUartDeviceTdf* pstUartDeviceCreate(stUartParamInitTdf *pstUartPriv);

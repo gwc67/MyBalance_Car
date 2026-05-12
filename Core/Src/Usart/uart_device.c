@@ -1,6 +1,7 @@
 #include "uart_device.h"
+#include <string.h>
 
-pstUartDeviceTdf gapstUartDevice[3] = {0};
+pstUartDeviceTdf gapstUartDevice[3] = {0}; 
 
 typedef struct
 {
@@ -17,7 +18,7 @@ typedef struct
 
 static emUartErrTdf s_emUartInit(stUartDeviceTdf *pstDev)
 {
-    stUartPrivTdf *pstPriv = (stUartPrivTdf *)pstDev->pvPrivData; // pstDev->pvPrivData的指向到底是什么？
+    stUartPrivTdf *pstPriv = (stUartPrivTdf *)pstDev->pvPrivData;
     if (pstPriv == NULL || pstPriv->pstHandle == NULL)
     {
         return emUartErrSoftWare;
@@ -34,29 +35,20 @@ static emUartErrTdf s_emUartInit(stUartDeviceTdf *pstDev)
         {
             periphclk = rcc_clocks.PCLK2_Frequency;
         }
-        else if (pstPriv->pstHandle == USART2)
+        else if (pstPriv->pstHandle == USART2 || pstPriv->pstHandle == USART3)
         {
             periphclk = rcc_clocks.PCLK1_Frequency;
         }
-        else if (pstPriv->pstHandle == USART3)
-        {
-            periphclk = rcc_clocks.PCLK1_Frequency;
-        }
-        if ((periphclk == LL_RCC_PERIPH_FREQUENCY_NO))
+        if (periphclk == LL_RCC_PERIPH_FREQUENCY_NO)
         {
             return emUartErrHardWare;
         }
 
         LL_USART_SetBaudRate(pstPriv->pstHandle, periphclk, pstPriv->stUartCfg.ulBaterate);
-
         LL_USART_SetDataWidth(pstPriv->pstHandle, pstPriv->stUartCfg.ulWordLength);
-
         LL_USART_SetStopBitsLength(pstPriv->pstHandle, pstPriv->stUartCfg.ulStopBits);
-
         LL_USART_SetParity(pstPriv->pstHandle, pstPriv->stUartCfg.ulParity);
-
         LL_USART_SetTransferDirection(pstPriv->pstHandle, pstPriv->stUartCfg.ulMode);
-
         LL_USART_Enable(pstPriv->pstHandle);
     }
 
@@ -148,9 +140,9 @@ static emUartErrTdf s_emUartCallBack(stUartDeviceTdf *pstDev)
         return emUartErrSoftWare;
     }
 
-    // 普通模式下 dma的设置
-    LL_USART_ClearFlag_IDLE(pstPriv->pstHandle);
+    // 必须先停DMA再清IDLE，否则LL_USART_ClearFlag_IDLE内部读DR会与DMA竞争
     LL_DMA_DisableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
+    LL_USART_ClearFlag_IDLE(pstPriv->pstHandle);
     uint32_t received = pstPriv->ulDmaRxBufSize - LL_DMA_GetDataLength(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
     LL_DMA_SetDataLength(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel, pstPriv->ulDmaRxBufSize);
     LL_DMA_EnableChannel(pstPriv->pstDmaHandle, pstPriv->ulDmaChannel);
@@ -172,6 +164,105 @@ union
     uint8_t ucConvertData[4];
 } unConvertUIN;
 
+static PID_t *s_pstGetPidByName(const char *pucName)
+{
+    if (strcmp(pucName, "AnglePID") == 0) return &AnglePID;
+    if (strcmp(pucName, "GyroPID") == 0)  return &GyroPID;
+    if (strcmp(pucName, "SpeedPID") == 0) return &SpeedPID;
+    if (strcmp(pucName, "TurnPID") == 0)  return &TurnPID;
+    return NULL;
+}
+
+static float s_fAtof(const char *pucStr)
+{
+    float fResult = 0.0f;
+    float fSign = 1.0f;
+    if (*pucStr == '-') { fSign = -1.0f; pucStr++; }
+
+    while (*pucStr >= '0' && *pucStr <= '9')
+        fResult = fResult * 10.0f + (*pucStr++ - '0');
+
+    if (*pucStr == '.')
+    {
+        pucStr++;
+        float fFrac = 0.1f;
+        while (*pucStr >= '0' && *pucStr <= '9')
+        {
+            fResult += (*pucStr++ - '0') * fFrac;
+            fFrac *= 0.1f;
+        }
+    }
+    return fSign * fResult;
+}
+
+// Parse text command: {Name kp kd ki} from ring buffer
+static emUartErrTdf s_emParseTextCmd(pstRingBufTdf pstRingBuf, uint8_t *pucOutData, uint16_t usLen)
+{
+    uint32_t ulLen = ucRingBufGetLength(pstRingBuf);
+    if (ulLen < 10) return emUartErrNone;
+
+    uint8_t ucByte;
+    if (ucRingBufPeek(pstRingBuf, 0) != '{')    
+        return emUartErrNone;
+
+    // Find '}' position (max 50 bytes)
+    int32_t lEndPos = -1;
+    for (uint32_t i = 1; i < ulLen && i < 50; i++)
+    {
+        if (ucRingBufPeek(pstRingBuf, i) == '}')
+        {
+            lEndPos = (int32_t)i;
+            break;
+        }
+    }
+    if (lEndPos < 0) return emUartErrNone; // Wait for more data
+
+    // Extract command bytes: "{Name kp ki kd}"
+    char acCmdBuf[50] = {0};
+    for (int32_t i = 0; i <= lEndPos; i++)
+        acCmdBuf[i] = (char)ucRingBufPeek(pstRingBuf, (uint32_t)i);
+    acCmdBuf[lEndPos] = '\0';
+
+    // Consume from ring buffer
+    for (int32_t i = 0; i <= lEndPos; i++)
+        ucRingBufRead(pstRingBuf, &ucByte);
+
+    // Parse: skip '{', extract name
+    char *pucPtr = acCmdBuf + 1;
+    while (*pucPtr == ' ') pucPtr++;
+
+    char acName[16] = {0};
+    uint32_t ulIdx = 0;
+    while (*pucPtr != ' ' && *pucPtr != '\0' && ulIdx < 15)
+        acName[ulIdx++] = *pucPtr++;
+    acName[ulIdx] = '\0';
+
+    PID_t *pstPid = s_pstGetPidByName(acName);
+    if (pstPid == NULL) return emUartErrNone;
+
+    // Parse 3 floats: kp, ki, kd
+    float afVals[3];
+    for (int i = 0; i < 3; i++)
+    {
+        while (*pucPtr == ' ') pucPtr++;
+        if (*pucPtr == '\0') return emUartErrNone;
+        afVals[i] = s_fAtof(pucPtr);
+        while (*pucPtr != ' ' && *pucPtr != '\0') pucPtr++;
+    }
+
+    pstPid->Kp = afVals[0];
+    pstPid->Ki = afVals[1];
+    pstPid->Kd = afVals[2];
+
+    // Signal success via ucOutData
+    if (usLen >= 2)
+    {
+        pucOutData[0] = 0x00;
+        pucOutData[1] = 0x00;
+    }
+    return emUartErrNone;
+}
+
 // usLen 想要获取的数据的长度
 static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev, uint8_t *ucOutData, uint16_t usLen)
 {
@@ -181,6 +272,12 @@ static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev, uint8_t *ucOutData,
     {
         return emUartErrSoftWare;
     }
+
+    // Try text command first
+    // if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 0 && ucRingBufPeek(pstPriv->pstRxRingBuf, 0) == '{')
+    // {
+    //     s_emParseTextCmd(pstPriv->pstRxRingBuf, ucOutData, usLen);
+    // }
 
     if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 5)
     {
