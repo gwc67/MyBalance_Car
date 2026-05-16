@@ -192,6 +192,7 @@ int main(void)
     emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
 
   }
+  char temp[40];
 
   /* USER CODE END 2 */
 
@@ -218,7 +219,9 @@ int main(void)
     {
       BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
-    
+    vsprintf(temp,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",AnglePID.Kp,AnglePID.Ki,AnglePID.Kd);
+    emUartSendInline(gapstUartDevice[UART_DEVICE_1],temp,strlen(temp));
+
 
 
     // if (ucRingBufGetLength(&stRingBuf_t) > 5)

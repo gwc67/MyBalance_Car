@@ -33,7 +33,6 @@ uint8_t Key_GetState(uint8_t n)
 			return KEY_PRESSED;
 		}
 	}
-
 	return KEY_UNPRESSED;
 }
 

@@ -28,8 +28,10 @@
 #include "PID.h"
 #include "ring_buf.h"
 #include "uart_device.h"
+#include "stdio.h"
 extern uint8_t RunFlag;
 extern int16_t LeftPwm,RightPwm;
 extern int16_t AvePwm,DifPwm; 
 extern float Angle;
+extern float GyroY_Actual;
 #endif

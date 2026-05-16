@@ -195,14 +195,14 @@ static float s_fAtof(const char *pucStr)
     return fSign * fResult;
 }
 
-// Parse text command: {Name kp kd ki} from ring buffer
-static emUartErrTdf s_emParseTextCmd(pstRingBufTdf pstRingBuf, uint8_t *pucOutData, uint16_t usLen)
+// Parse text command: {Name kp ki kd} or {Report} from ring buffer
+static emUartErrTdf s_emParseTextCmd(stUartDeviceTdf *pstDev, pstRingBufTdf pstRingBuf, uint8_t *pucOutData, uint16_t usLen)
 {
     uint32_t ulLen = ucRingBufGetLength(pstRingBuf);
-    if (ulLen < 10) return emUartErrNone;
+    if (ulLen < 5) return emUartErrNone;
 
     uint8_t ucByte;
-    if (ucRingBufPeek(pstRingBuf, 0) != '{')    
+    if (ucRingBufPeek(pstRingBuf, 0) != '{')
         return emUartErrNone;
 
     // Find '}' position (max 50 bytes)
@@ -217,7 +217,7 @@ static emUartErrTdf s_emParseTextCmd(pstRingBufTdf pstRingBuf, uint8_t *pucOutDa
     }
     if (lEndPos < 0) return emUartErrNone; // Wait for more data
 
-    // Extract command bytes: "{Name kp ki kd}"
+    // Extract command bytes
     char acCmdBuf[50] = {0};
     for (int32_t i = 0; i <= lEndPos; i++)
         acCmdBuf[i] = (char)ucRingBufPeek(pstRingBuf, (uint32_t)i);
@@ -236,6 +236,19 @@ static emUartErrTdf s_emParseTextCmd(pstRingBufTdf pstRingBuf, uint8_t *pucOutDa
     while (*pucPtr != ' ' && *pucPtr != '\0' && ulIdx < 15)
         acName[ulIdx++] = *pucPtr++;
     acName[ulIdx] = '\0';
+
+    // Handle {Report} command
+    if (strcmp(acName, "Report") == 0)
+    {
+        char acBuf[128];
+        int n = sprintf(acBuf,
+            "R,%.2f,%.2f,%.2f,%d,%.2f,%.3f,%.3f,%.3f,%u\r\n",
+            Angle, GyroY_Actual, AnglePID.Target, (int)AnglePID.Out,
+            AvePwm, AnglePID.Kp, AnglePID.Ki, AnglePID.Kd, RunFlag);
+        s_emUartSend(pstDev, (uint8_t *)acBuf, (uint16_t)n);
+        if (usLen >= 2) { pucOutData[0] = 0x00; pucOutData[1] = 0x00; }
+        return emUartErrNone;
+    }
 
     PID_t *pstPid = s_pstGetPidByName(acName);
     if (pstPid == NULL) return emUartErrNone;
@@ -273,11 +286,11 @@ static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev, uint8_t *ucOutData,
         return emUartErrSoftWare;
     }
 
-    // Try text command first
-    // if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 0 && ucRingBufPeek(pstPriv->pstRxRingBuf, 0) == '{')
-    // {
-    //     s_emParseTextCmd(pstPriv->pstRxRingBuf, ucOutData, usLen);
-    // }
+    // Try text command fi
+    if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 0 && ucRingBufPeek(pstPriv->pstRxRingBuf, 0) == '{')
+    {
+        s_emParseTextCmd(pstDev, pstPriv->pstRxRingBuf, ucOutData, usLen);
+    }
 
     if (ucRingBufGetLength(pstPriv->pstRxRingBuf) > 5)
     {
@@ -345,13 +358,6 @@ static emUartErrTdf s_emUartProcess(stUartDeviceTdf *pstDev, uint8_t *ucOutData,
         // Menu_FlashSave();
     }
     return emUartErrNone;
-    // char msg[] = "Process\r\n";
-    // for (int i = 0; i < strlen(msg); i++)
-    // {
-    //     LL_USART_TransmitData8(USART2, msg[i]);
-    //     while (LL_USART_IsActiveFlag_TXE(USART2) == RESET)
-    //         ;
-    // }
 }
 
 stUartOpsTdf stUartOps = {
