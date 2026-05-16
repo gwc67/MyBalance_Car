@@ -242,8 +242,8 @@ static emUartErrTdf s_emParseTextCmd(stUartDeviceTdf *pstDev, pstRingBufTdf pstR
     {
         char acBuf[128];
         int n = sprintf(acBuf,
-            "R,%.2f,%.2f,%.2f,%d,%.2f,%.3f,%.3f,%.3f,%u\r\n",
-            Angle, GyroY_Actual, AnglePID.Target, (int)AnglePID.Out,
+            "R,%.2f,%.2f,%.2f,%.2f,%d,%.3f,%.3f,%.3f,%u\r\n",
+            Angle, GyroY_Actual, AnglePID.Target,  AnglePID.Out,
             AvePwm, AnglePID.Kp, AnglePID.Ki, AnglePID.Kd, RunFlag);
         s_emUartSend(pstDev, (uint8_t *)acBuf, (uint16_t)n);
         if (usLen >= 2) { pucOutData[0] = 0x00; pucOutData[1] = 0x00; }
@@ -267,6 +267,11 @@ static emUartErrTdf s_emParseTextCmd(stUartDeviceTdf *pstDev, pstRingBufTdf pstR
     pstPid->Ki = afVals[1];
     pstPid->Kd = afVals[2];
 
+    Menu_SyncVarToFlash(&pstPid->Kp);
+    Menu_SyncVarToFlash(&pstPid->Ki);
+    Menu_SyncVarToFlash(&pstPid->Kd);
+
+    Menu_FlashSave();
     // Signal success via ucOutData
     if (usLen >= 2)
     {

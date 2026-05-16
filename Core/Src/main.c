@@ -203,6 +203,8 @@ int main(void)
     if (RunFlag)
     {
       LED1_OFF();
+      sprintf(temp,"%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.2f\n",AnglePID.Kp,AnglePID.Ki,AnglePID.Kd,Angle,AnglePID.Out,AvePwm,GyroY_Actual);
+      emUartSendInline(gapstUartDevice[UART_DEVICE_1],(uint8_t*)temp,strlen(temp));
     }
     else
     {
@@ -219,8 +221,7 @@ int main(void)
     {
       BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
-    vsprintf(temp,"%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",AnglePID.Kp,AnglePID.Ki,AnglePID.Kd);
-    emUartSendInline(gapstUartDevice[UART_DEVICE_1],temp,strlen(temp));
+
 
 
 

@@ -53,9 +53,12 @@ float Angle;
 float GyroY_Actual;
 float AveSpeed,DifSpeed;//平均、差分速度
 PID_t AnglePID = {
-    .Kd = 0.3,  //12
+    .Kd = 0,  //12
     .Ki = 0,
-    .Kp = 10.5,    //7.2
+    .Kp = 0,    //7.2
+    // .Kd = 0.3,  //12
+    // .Ki = 0,
+    // .Kp = 10.5,    //7.2
     // .Kd = 12,  //12                          // 4.19
     // .Ki = 0.1,                      
     // .Kp = 7.2,    //7.2                      // 9.0     
