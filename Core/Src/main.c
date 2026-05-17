@@ -62,8 +62,9 @@ MPU6050_raw raw;
 /* USER CODE BEGIN 0 */
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
-extern float SpeedL, SpeedR;
-
+extern int16_t SpeedL, SpeedR;
+extern float AngleAcc;
+extern float AngleGyro;
 // extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
 uint8_t flag;
@@ -127,7 +128,7 @@ stUartParamInitTdf stUartParamInit_1 = {
     .pstDmaHandle = DMA1,
     .ulDmaChannel = LL_DMA_CHANNEL_6,
 };
- //6A A6 0C 00 00 4C 40 00 00 4C 40 00 00 00 00 34
+// 6A A6 0C 00 00 4C 40 00 00 4C 40 00 00 00 00 34
 void USART2_IRQHandler(void)
 {
   if (LL_USART_IsActiveFlag_IDLE(USART2) && LL_USART_IsEnabledIT_IDLE(USART2))
@@ -184,15 +185,14 @@ int main(void)
   OLED_Init();
   Menu_Init();
 
-  //初始化自己的串口的标准操作
+  // 初始化自己的串口的标准操作
   gapstUartDevice[UART_DEVICE_1] = pstUartDeviceCreate(&stUartParamInit_1);
   if (gapstUartDevice[UART_DEVICE_1] != NULL)
   {
     emUartInitInline(gapstUartDevice[UART_DEVICE_1]);
     emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
-
   }
-  char temp[40];
+  char temp[50];
 
   /* USER CODE END 2 */
 
@@ -203,8 +203,8 @@ int main(void)
     if (RunFlag)
     {
       LED1_OFF();
-      sprintf(temp,"%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.2f\n",AnglePID.Kp,AnglePID.Ki,AnglePID.Kd,Angle,AnglePID.Out,AvePwm,GyroY_Actual);
-      emUartSendInline(gapstUartDevice[UART_DEVICE_1],(uint8_t*)temp,strlen(temp));
+      sprintf(temp, "%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.2f,%.2f\n", SpeedPID.Kp, SpeedPID.Ki, SpeedPID.Kd, Angle, SpeedPID.Out, AvePwm, SpeedPID.Actual, AnglePID.Target);
+      emUartSendInline(gapstUartDevice[UART_DEVICE_1], (uint8_t *)temp, strlen(temp));
     }
     else
     {
@@ -221,85 +221,9 @@ int main(void)
     {
       BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
     }
-
-
-
-
-    // if (ucRingBufGetLength(&stRingBuf_t) > 5)
-    // {
-    //   uint8_t head1, head2, len, sum, temp;
-    //   uint8_t calc_sum = 0;
-    //   uint8_t data_buf[30];
-    //   uint16_t temp_head;
-
-    //   head1 = ucRingBufPeek(&stRingBuf_t, 0);
-    //   head2 = ucRingBufPeek(&stRingBuf_t, 1);
-
-    //   temp_head = ((uint16_t)head1 << 8) | head2;
-
-    //   if (temp_head != stUARTFrame.usFrameHead)
-    //   {
-    //     ucRingBufRead(&stRingBuf_t, &temp);
-    //     continue;
-    //   }
-
-    //   ucRingBufRead(&stRingBuf_t, &head1);
-    //   ucRingBufRead(&stRingBuf_t, &head2);
-    //   ucRingBufRead(&stRingBuf_t, &len);
-
-    //   calc_sum = head1 + head2 + len;
-    //   if (len > 14)
-    //   {
-    //     continue; // continue理解为重新执行循环
-    //   }
-    //   for (int i = 0; i < len; i++)
-    //   {
-    //     ucRingBufRead(&stRingBuf_t, &data_buf[i]);
-    //     calc_sum += data_buf[i];
-    //   }
-    //   BlueSerial_SendArray(data_buf, len);
-    //   ucRingBufRead(&stRingBuf_t, &sum);
-    //   float fArray[3];
-    //   for (int i = 0; i < len; i += 4)
-    //   {
-    //     unConvertUIN.ucConvertData[0] = data_buf[i];
-    //     unConvertUIN.ucConvertData[1] = data_buf[i + 1];
-    //     unConvertUIN.ucConvertData[2] = data_buf[i + 2];
-    //     unConvertUIN.ucConvertData[3] = data_buf[i + 3];
-    //     fArray[i / 4] = unConvertUIN.fConvertFloat;
-    //   }
-
-    //   if (calc_sum != sum)
-    //   {
-    //     continue;
-    //   }
-    //   SpeedPID.Kp = fArray[0];
-    //   SpeedPID.Ki = fArray[1];
-    //   SpeedPID.Kd = fArray[2];
-    //   Menu_SyncVarToFlash(&(SpeedPID.Kp));
-    //   Menu_SyncVarToFlash(&(SpeedPID.Ki));
-    //   Menu_SyncVarToFlash(&(SpeedPID.Kd));
-    //   Menu_FlashSave();
-    // }
     OLED_Clear();
     Menu_Choose();
     OLED_Update();
-
-    // if (BlueSerial_RxFlag)
-    // {
-
-    //   BlueSerial_RxFlag = 0;
-    //   SpeedPID.Target = FloatArray[0] / 40;
-    //   DifPwm = FloatArray[1] / 2;
-    //   OLED_Printf(0,0,48,"%.2f",SpeedPID.Target);
-    // }
-
-    // Serial_ProcessCommand_LL();  // 处理上位机指令
-    // Serial_ReportData_LL(); // 上
-    // Serial_Printf("%d",1);
-    // Serial_SendString_LL("Hello from STM32 Balance Car!\r\n");
-    // BlueSerial_Printf("%d,%d,%d\n",raw.AccX,raw.AccY,raw.AccZ);
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

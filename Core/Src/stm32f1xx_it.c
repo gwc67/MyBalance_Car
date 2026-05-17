@@ -51,56 +51,55 @@ float AngleAcc;
 float AngleGyro;
 float Angle;
 float GyroY_Actual;
-float AveSpeed,DifSpeed;//平均、差分速度
+float AveSpeed, DifSpeed; // 平均、差分速度
 PID_t AnglePID = {
-    .Kd = 0,  //12
+    .Kd = 1.3, // 12
     .Ki = 0,
-    .Kp = 0,    //7.2
+    .Kp = 10, // 7.2
     // .Kd = 0.3,  //12
     // .Ki = 0,
     // .Kp = 10.5,    //7.2
     // .Kd = 12,  //12                          // 4.19
-    // .Ki = 0.1,                      
-    // .Kp = 7.2,    //7.2                      // 9.0     
-    .OutMax = 50,
-    .OutMin = -50,
+    // .Ki = 0.1,
+    // .Kp = 7.2,    //7.2                      // 9.0
+    .OutMax = 60,
+    .OutMin = -60,
     .ErrorIntMax = 600,
     .ErrorIntMin = -600,
     .OutOffset = 2,
-    
-  
+
 };
 
 PID_t GyroPID = {
-  .Kp = 0,
-  .Kd = 0,
-  .Ki = 0,
-  // .Kp = 0.39,
-  // .Kd = 6,
-  // .Ki = 1,
-  .OutMax = 5,
-  .OutMin = -5
-  
+    .Kp = 0,
+    .Kd = 0,
+    .Ki = 0,
+    // .Kp = 0.39,
+    // .Kd = 6,
+    // .Ki = 1,
+    .OutMax = 5,
+    .OutMin = -5
+
 };
 
-PID_t SpeedPID = 
-{
-    .Kp = 0,   // 4.0
-    .Ki = 0,    
-    .Kd = 0,    //0.8
-    .OutMax = 13,  // 这里的单位是角度
-    .OutMin = -13,
-    .ErrorIntMax = 150,
-    .ErrorIntMin = -150,
+PID_t SpeedPID =
+    {
+        .Kp = 0, // 4.0
+        .Ki = 0,
+        .Kd = 0,      // 0.8
+        .OutMax = 13, // 这里的单位是角度
+        .OutMin = -13,
+        .ErrorIntMax = 150,
+        .ErrorIntMin = -150,
 };
 
 PID_t TurnPID =
-{
-  .Kp = 0,
-  .Ki = 0,
-  .Kd = 0,
-  .ErrorIntMax = 150,
-  .ErrorIntMin = -150,
+    {
+        .Kp = 0,
+        .Ki = 0,
+        .Kd = 0,
+        .ErrorIntMax = 150,
+        .ErrorIntMin = -150,
 };
 #define Max 100
 /* USER CODE END PV */
@@ -125,8 +124,8 @@ PID_t TurnPID =
 /*           Cortex-M3 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
-  * @brief This function handles Non maskable interrupt.
-  */
+ * @brief This function handles Non maskable interrupt.
+ */
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
@@ -140,8 +139,8 @@ void NMI_Handler(void)
 }
 
 /**
-  * @brief This function handles Hard fault interrupt.
-  */
+ * @brief This function handles Hard fault interrupt.
+ */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -155,8 +154,8 @@ void HardFault_Handler(void)
 }
 
 /**
-  * @brief This function handles Memory management fault.
-  */
+ * @brief This function handles Memory management fault.
+ */
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
@@ -170,8 +169,8 @@ void MemManage_Handler(void)
 }
 
 /**
-  * @brief This function handles Prefetch fault, memory access fault.
-  */
+ * @brief This function handles Prefetch fault, memory access fault.
+ */
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
@@ -185,8 +184,8 @@ void BusFault_Handler(void)
 }
 
 /**
-  * @brief This function handles Undefined instruction or illegal state.
-  */
+ * @brief This function handles Undefined instruction or illegal state.
+ */
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
@@ -200,8 +199,8 @@ void UsageFault_Handler(void)
 }
 
 /**
-  * @brief This function handles System service call via SWI instruction.
-  */
+ * @brief This function handles System service call via SWI instruction.
+ */
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -213,8 +212,8 @@ void SVC_Handler(void)
 }
 
 /**
-  * @brief This function handles Debug monitor.
-  */
+ * @brief This function handles Debug monitor.
+ */
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
@@ -226,8 +225,8 @@ void DebugMon_Handler(void)
 }
 
 /**
-  * @brief This function handles Pendable request for system service.
-  */
+ * @brief This function handles Pendable request for system service.
+ */
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -239,8 +238,8 @@ void PendSV_Handler(void)
 }
 
 /**
-  * @brief This function handles System tick timer.
-  */
+ * @brief This function handles System tick timer.
+ */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -260,116 +259,112 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
-  * @brief This function handles TIM1 update interrupt.
-  */
+ * @brief This function handles TIM1 update interrupt.
+ */
 
-  // int16_t AX,AY,AZ,GX,GY,GZ;
+// int16_t AX,AY,AZ,GX,GY,GZ;
 
-void TIM1_UP_IRQHandler ()
+void TIM1_UP_IRQHandler()
 {
-	static uint16_t Count0,Count1;
-	if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
-	{
-		LL_TIM_ClearFlag_UPDATE(TIM1);
-		
-		Key_Tick();//定时器扫描按键
-		
-		Count0++;
-		if (Count0>=10)//10ms定时
-		{
-			Count0=0;
-			
-			/*读MPU6050传感器值*/
-			// MPU6050_GetData(&AX,&AY,&AZ,&GX,&GY,&GZ);
-			MPU6050_Get_Raw(&raw);
-			//GY-=10;//初步校准
-			
-			/*Y轴角度：加速度计*/
-			AngleAcc=-atan2(raw.AccX,raw.AccZ)/3.14158*180;
-			
-			/*Y轴角度：角速度计，积分*/
-			AngleGyro=Angle+raw.GyroY/32768.0*2000*0.01;
-			
-			/*Y轴角速度：角速度计*/
-			GyroY_Actual=raw.GyroY/32768.0*2000;
-			
-			/*角度：互补滤波算法*/
-			//滤波系数（以陀螺仪计为主，越增大滤波系数，稳态误差越小，加速度计的缺点越明显）
-			float Alpha=0.01;
-			Angle=Alpha*AngleAcc+(1-Alpha)*AngleGyro;
-			
-			if (Angle>70 || Angle<-70)//角度超出可控范围
-			{
-				RunFlag=0;
-			}
-    
-			if (RunFlag)
-			{
-				/*角度环调控*/
-				AnglePID.Actual=Angle;
-        AnglePID.Out = AnglePID.Kp * (AnglePID.Target - AnglePID.Actual) - AnglePID.Kd * GyroY_Actual;
-        if (AnglePID.Out > 60)
-        {
-          AnglePID.Out = 60;
-        }
-        else if(AnglePID.Out < -60){
-          AnglePID.Out = -60;
-        }
+  static uint16_t Count0, Count1;
+  if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
+  {
+    LL_TIM_ClearFlag_UPDATE(TIM1);
+
+    Key_Tick(); // 定时器扫描按键
+
+    Count0++;
+    if (Count0 >= 5) // 10ms定时
+    {
+      Count0 = 0;
+
+      /*读MPU6050传感器值*/
+      // MPU6050_GetData(&AX,&AY,&AZ,&GX,&GY,&GZ);
+      MPU6050_Get_Raw(&raw);
+      // GY-=10;//初步校准
+
+      /*Y轴角度：加速度计*/
+      AngleAcc = -atan2(raw.AccX, raw.AccZ) / 3.14158 * 180;
+
+      /*Y轴角度：角速度计，积分*/
+      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
+
+      /*Y轴角速度：角速度计*/
+      GyroY_Actual = raw.GyroY / 32768.0 * 2000;
+
+      /*角度：互补滤波算法*/
+      // 滤波系数（以陀螺仪计为主，越增大滤波系数，稳态误差越小，加速度计的缺点越明显）
+      float Alpha = 0.01;
+      Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
+
+      if (Angle > 60 || Angle < -60) // 角度超出可控范围
+      {
+        RunFlag = 0;
+      }
+
+      if (RunFlag)
+      {
+        /*角度环调控*/
+        AnglePID.Actual = Angle;
+        // AnglePID.Out = AnglePID.Kp * (AnglePID.Target - AnglePID.Actual) - AnglePID.Kd * GyroY_Actual;
+        PID_Update(&AnglePID);
         
-				// PID_Update(&AnglePID);
-				
-			 /*角速度环调控*/
-				// GyroPID.Target=AnglePID.Out;
-				// GyroPID.Actual=GyroY_Actual;
-				// PID_Update(&GyroPID);
-				
-				AvePwm=-(AnglePID.Out);
-				
-				SpeedL=AvePwm+DifPwm/2;
-				SpeedR=AvePwm-DifPwm/2;
-				
-				if (SpeedL>100)SpeedL=100;else if (SpeedL<-100)SpeedL=-100;
-				if (SpeedR>100)SpeedR=100;else if (SpeedR<-100)SpeedR=-100;
-	
-				Servo_SetSpeed_left(SpeedL);Servo_SetSpeed_right( SpeedR);
-			}
-			else
-			{
-				Servo_SetSpeed_left(0);Servo_SetSpeed_right( 0);//电机停转，防止失控
-			}
-			
-		}
-		Count1++;
-		if (Count1>=30)//50ms定时
-		{
-			Count1=0;
-			//编码电机速度：编码器测速值/极数/时间/减速比
-			SpeedL= Encode_Get_left() /44.0/0.03/20;
-			SpeedR=Encode_Get_right()/44.0/0.03/20;
-			
-			AveSpeed=(SpeedL+SpeedR)/2.0;
-			DifSpeed=SpeedL-SpeedR;
-			
-			if (RunFlag)
-			{
-				/*速度环调控*/
-				SpeedPID.Actual=AveSpeed;
-				PID_Update(&SpeedPID);
-				AnglePID.Target=SpeedPID.Out;
-				
-				/*转向环调控*/
-			TurnPID.Actual=DifSpeed;
-			PID_Update(&TurnPID);
-			DifPwm=TurnPID.Out;
-		}
-	}
-		 
-	}
+        /*角速度环调控*/
+        // GyroPID.Target=AnglePID.Out;
+        // GyroPID.Actual=GyroY_Actual;
+        // PID_Update(&GyroPID);
+
+        AvePwm = -(AnglePID.Out);
+
+        SpeedL = AvePwm + DifPwm / 2;
+        SpeedR = AvePwm - DifPwm / 2;
+
+        if (SpeedL > 100)
+          SpeedL = 100;
+        else if (SpeedL < -100)
+          SpeedL = -100;
+        if (SpeedR > 100)
+          SpeedR = 100;
+        else if (SpeedR < -100)
+          SpeedR = -100;
+
+        Servo_SetSpeed_left(SpeedL);
+        Servo_SetSpeed_right(SpeedR);
+      }
+      else
+      {
+        Servo_SetSpeed_left (0);
+        Servo_SetSpeed_right(0); // 电机停转，防止失控
+      }
+    }
+    Count1++;
+    if (Count1 >= 30) // 50ms定时
+    {
+      Count1 = 0;
+      // 编码电机速度：编码器测速值/极数/时间/减速比
+      SpeedL = Encode_Get_left() / 44.0 / 0.03 / 20;
+      SpeedR = Encode_Get_right() / 44.0 / 0.03 / 20;
+
+      AveSpeed = (SpeedL + SpeedR) / 2.0;
+      DifSpeed = SpeedL - SpeedR;
+
+      if (RunFlag)
+      {
+        /*速度环调控*/
+        SpeedPID.Actual = AveSpeed;
+        PID_Update(&SpeedPID);
+        AnglePID.Target = SpeedPID.Out;
+
+        /*转向环调控*/
+        TurnPID.Actual = DifSpeed;
+        PID_Update(&TurnPID);
+        DifPwm = TurnPID.Out;
+      }
+    }
+  }
 }
 
-  /* USER CODE END TIM1_UP_IRQn 0 */
-  /* USER CODE BEGIN TIM1_UP_IRQn 1 */
+/* USER CODE END TIM1_UP_IRQn 0 */
+/* USER CODE BEGIN TIM1_UP_IRQn 1 */
 
-  /* USER CODE END TIM1_UP_IRQn 1 */
- 
- 
+/* USER CODE END TIM1_UP_IRQn 1 */

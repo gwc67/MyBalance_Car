@@ -29,7 +29,7 @@ uint8_t u8_n = 0;
 static float SetupNumber[SETUP_LEN] = {0.001, 0.01, 0.1, 1, 10, 100, 1000};
 static uint8_t SetupIndex = 3;
 uint8_t Setup_mode = 0;
-
+        
 
 
 void Menu_Init(void)
@@ -63,6 +63,7 @@ void Menu_Init(void)
     dynamicCreate_Menu_Number(CCC, "KiS", &SpeedPID.Ki , float_Box);
     dynamicCreate_Menu_Number(CCC, "KdS", &SpeedPID.Kd , float_Box);
     dynamicCreate_Menu_Number(CCC, "target", &SpeedPID.Target , float_Box);
+    dynamicCreate_Menu_Number(CCC, "Actual", &SpeedPID.Actual , float_Box);
 
     dynamicCreate_Menu_Number(DDD, "KpT", &TurnPID.Kp , float_Box);
     dynamicCreate_Menu_Number(DDD, "KiT", &TurnPID.Ki , float_Box);
