@@ -26,8 +26,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "ALL.h"
-#include "MPU6050.h"
 
 /* USER CODE END Includes */
 
@@ -49,36 +47,16 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+#include "FreeRTOS.h"
+#include "task.h"
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
-MPU6050_raw raw;
-// extern void Delay_us(uint32_t xus);
+extern osThreadId_t task_1msHandle;
 /* USER CODE END PFP */
-
-/* Private user code ---------------------------------------------------------*/
-/* USER CODE BEGIN 0 */
-extern uint16_t time1;
-extern uint8_t TimeErrorFlag;
-extern float SpeedL_f, SpeedR_f;
-extern float AngleAcc;
-extern float AngleGyro;
-// extern   int16_t AX,AY,AZ,GX,GY,GZ;
-
-uint8_t flag;
-uint8_t RunFlag;
-float LeftPwm, RightPwm;
-float AvePwm, DifPwm;
-
-stRingBufTdf stRingBuf_t;
-
-uint8_t rece_it_data;
-
-uint8_t buf[30];
 
 
 
@@ -213,6 +191,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   if (htim->Instance == TIM1)
   {
     HAL_IncTick();
+
+    if (task_1msHandle != NULL)
+    {
+      BaseType_t highTaskWoken = pdFALSE;
+      vTaskNotifyGiveFromISR(task_1msHandle, &highTaskWoken);
+      portYIELD_FROM_ISR(highTaskWoken); // 保证高优先级的能够抢占
+    }
   }
   /* USER CODE BEGIN Callback 1 */
 

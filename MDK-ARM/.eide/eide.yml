@@ -3,7 +3,8 @@ name: OLED_UI_2
 type: ARM
 deviceName: STM32F103C8
 packDir: .pack/Keil/STM32F1xx_DFP.2.3.0
-srcDirs: []
+srcDirs:
+  - ../Core
 virtualFolder:
   name: <virtual_root>
   files: []

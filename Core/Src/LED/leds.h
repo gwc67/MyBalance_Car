@@ -3,8 +3,8 @@
 #define __LEDS_H
 
 #include "led_base.h"
-extern LedBase *g_led_red;
-extern LedBase *g_led_green;
+extern LedBase *g_left_dir_gpio_pst;
+extern LedBase *g_right_dir_gpio_pst;
 extern LedBase *g_led_blue;
 extern LedBase *g_led_ano;
 extern DelayBase *pst_os_delay;  
