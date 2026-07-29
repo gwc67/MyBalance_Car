@@ -5,6 +5,7 @@ deviceName: STM32F103C8
 packDir: .pack/Keil/STM32F1xx_DFP.2.3.0
 srcDirs:
   - ../Core
+  - ../Middlewares
 virtualFolder:
   name: <virtual_root>
   files: []
@@ -204,15 +205,19 @@ targets:
         - ../Drivers/STM32F1xx_HAL_Driver/Src
         - ../Core/Src
         - ../Core/Src/OLED
-        - ../Core/Src/Delay
         - ../Core/Src/Key
         - ../Core/Src/Menu
-        - ../Core/Src/MyFlash
-        - ../Core/Src/Me_Tft
         - ../Core
         - ../Core/Src/I2C
         - ../Core/Src/Usart
         - ../Core/Src/LED
+        - ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
+        - ../Middlewares/Third_Party/FreeRTOS/Source/include
+        - ../Middlewares/Third_Party/FreeRTOS/Source/portable
+        - ../Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang
+        - ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM3
+        - ../Core/Src/control
+        - ../Core/Src/AutoInit
       libList: []
     excludeList:
       - <virtual_root>/Application/User/Core/i2c.c

@@ -98,16 +98,6 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  // BlueSerial_Init();
-  MX_TIM1_Init();
-  Servo_Init();
-  // Serial_Init_LL();
-  Key_Init();
-  Encode_Init();
-  // Store_Init();
-  // OLED_Init();
-  // Menu_Init();
-
   // 初始化自己的串口的标准操作
   /* USER CODE END 2 */
 
