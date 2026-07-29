@@ -29,18 +29,6 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f1xx_hal.h"
 
-#include "stm32f1xx_ll_dma.h"
-#include "stm32f1xx_ll_tim.h"
-#include "stm32f1xx_ll_usart.h"
-#include "stm32f1xx_ll_rcc.h"
-#include "stm32f1xx_ll_bus.h"
-#include "stm32f1xx_ll_system.h"
-#include "stm32f1xx_ll_exti.h"
-#include "stm32f1xx_ll_cortex.h"
-#include "stm32f1xx_ll_utils.h"
-#include "stm32f1xx_ll_pwr.h"
-#include "stm32f1xx_ll_gpio.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -83,18 +71,10 @@ void Error_Handler(void);
 #define Key2_GPIO_Port GPIOB
 #define Key1_Pin GPIO_PIN_1
 #define Key1_GPIO_Port GPIOB
-#define MPU6050_SCL_Pin GPIO_PIN_10
-#define MPU6050_SCL_GPIO_Port GPIOB
-#define MPU6050_SDA_Pin GPIO_PIN_11
-#define MPU6050_SDA_GPIO_Port GPIOB
-#define AIN1_Pin GPIO_PIN_12
-#define AIN1_GPIO_Port GPIOB
-#define AIN2_Pin GPIO_PIN_13
-#define AIN2_GPIO_Port GPIOB
-#define BIN1_Pin GPIO_PIN_14
-#define BIN1_GPIO_Port GPIOB
-#define BIN2_Pin GPIO_PIN_15
-#define BIN2_GPIO_Port GPIOB
+#define RIGHT_DIR_Pin GPIO_PIN_14
+#define RIGHT_DIR_GPIO_Port GPIOB
+#define LEFT_DIR_Pin GPIO_PIN_15
+#define LEFT_DIR_GPIO_Port GPIOB
 #define OLED_SCK_Pin GPIO_PIN_8
 #define OLED_SCK_GPIO_Port GPIOB
 #define OLED_SDA_Pin GPIO_PIN_9

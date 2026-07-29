@@ -13,11 +13,8 @@
 
 #define AIN1(x)  HAL_GPIO_WritePin(AIN1_GPIO_Port,AIN1_Pin,(GPIO_PinState)x)
 #define AIN2(x)  HAL_GPIO_WritePin(AIN2_GPIO_Port,AIN2_Pin,(GPIO_PinState)x)
-// #define AIN1(x)  ((x)?  LL_GPIO_SetOutputPin(AIN1_GPIO_Port, AIN1_Pin) : LL_GPIO_ResetOutputPin(AIN1_GPIO_Port,AIN1_Pin))
-// #define AIN2(x)  ((x)?   LL_GPIO_SetOutputPin(AIN2_GPIO_Port, AIN2_Pin) : LL_GPIO_ResetOutputPin(AIN2_GPIO_Port, AIN2_Pin))
 
-// #define BIN1(x)  ((x)?  LL_GPIO_SetOutputPin(BIN1_GPIO_Port, BIN1_Pin) : LL_GPIO_ResetOutputPin(BIN1_GPIO_Port,BIN1_Pin))
-// #define BIN2(x)  ((x)?   LL_GPIO_SetOutputPin(BIN2_GPIO_Port, BIN2_Pin) : LL_GPIO_ResetOutputPin(BIN2_GPIO_Port, BIN2_Pin))
+
 
 #define BIN1(x)  HAL_GPIO_WritePin(BIN1_GPIO_Port,BIN1_Pin,(GPIO_PinState)x)
 #define BIN2(x)  HAL_GPIO_WritePin(BIN2_GPIO_Port,BIN2_Pin,(GPIO_PinState)x)
