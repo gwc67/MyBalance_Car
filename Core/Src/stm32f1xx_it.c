@@ -119,7 +119,11 @@ PID_t TurnPID =
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
-
+extern TIM_HandleTypeDef htim1;
+extern DMA_HandleTypeDef hdma_usart1_rx;
+extern DMA_HandleTypeDef hdma_usart2_rx;
+extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -128,8 +132,8 @@ PID_t TurnPID =
 /*           Cortex-M3 Processor Interruption and Exception Handlers          */
 /******************************************************************************/
 /**
- * @brief This function handles Non maskable interrupt.
- */
+  * @brief This function handles Non maskable interrupt.
+  */
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
@@ -143,8 +147,8 @@ void NMI_Handler(void)
 }
 
 /**
- * @brief This function handles Hard fault interrupt.
- */
+  * @brief This function handles Hard fault interrupt.
+  */
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
@@ -158,8 +162,8 @@ void HardFault_Handler(void)
 }
 
 /**
- * @brief This function handles Memory management fault.
- */
+  * @brief This function handles Memory management fault.
+  */
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
@@ -173,8 +177,8 @@ void MemManage_Handler(void)
 }
 
 /**
- * @brief This function handles Prefetch fault, memory access fault.
- */
+  * @brief This function handles Prefetch fault, memory access fault.
+  */
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
@@ -188,8 +192,8 @@ void BusFault_Handler(void)
 }
 
 /**
- * @brief This function handles Undefined instruction or illegal state.
- */
+  * @brief This function handles Undefined instruction or illegal state.
+  */
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
@@ -203,8 +207,8 @@ void UsageFault_Handler(void)
 }
 
 /**
- * @brief This function handles System service call via SWI instruction.
- */
+  * @brief This function handles System service call via SWI instruction.
+  */
 void SVC_Handler(void)
 {
   /* USER CODE BEGIN SVCall_IRQn 0 */
@@ -216,8 +220,8 @@ void SVC_Handler(void)
 }
 
 /**
- * @brief This function handles Debug monitor.
- */
+  * @brief This function handles Debug monitor.
+  */
 void DebugMon_Handler(void)
 {
   /* USER CODE BEGIN DebugMonitor_IRQn 0 */
@@ -229,8 +233,8 @@ void DebugMon_Handler(void)
 }
 
 /**
- * @brief This function handles Pendable request for system service.
- */
+  * @brief This function handles Pendable request for system service.
+  */
 void PendSV_Handler(void)
 {
   /* USER CODE BEGIN PendSV_IRQn 0 */
@@ -242,8 +246,8 @@ void PendSV_Handler(void)
 }
 
 /**
- * @brief This function handles System tick timer.
- */
+  * @brief This function handles System tick timer.
+  */
 void SysTick_Handler(void)
 {
   /* USER CODE BEGIN SysTick_IRQn 0 */
@@ -263,112 +267,75 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
- * @brief This function handles TIM1 update interrupt.
- */
-
-// int16_t AX,AY,AZ,GX,GY,GZ;
-
-void TIM1_UP_IRQHandler()
+  * @brief This function handles DMA1 channel5 global interrupt.
+  */
+void DMA1_Channel5_IRQHandler(void)
 {
-  static uint16_t Count0, Count1;
-  if (LL_TIM_IsActiveFlag_UPDATE(TIM1) == SET)
-  {
-    LL_TIM_ClearFlag_UPDATE(TIM1);
+  /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
 
-    Key_Tick(); // 定时器扫描按键
+  /* USER CODE END DMA1_Channel5_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart1_rx);
+  /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
 
-    Count0++;
-    if (Count0 >= 5) // 5ms定时
-    {
-      Count0 = 0;
-
-      /*读MPU6050传感器值*/
-      // MPU6050_GetData(&AX,&AY,&AZ,&GX,&GY,&GZ);
-      MPU6050_Get_Raw(&raw);
-      // GY-=10;//初步校准
-
-      /*Y轴角度：加速度计*/
-      AngleAcc = -atan2(raw.AccX, raw.AccZ) / 3.14158 * 180;
-
-      /*Y轴角度：角速度计，积分*/
-      AngleGyro = Angle + raw.GyroY / 32768.0 * 2000 * 0.005;
-
-      /*Y轴角速度：角速度计*/
-      GyroY_Actual = raw.GyroY / 32768.0 * 2000;
-
-      /*角度：互补滤波算法*/
-      // 滤波系数（以陀螺仪计为主，越增大滤波系数，稳态误差越小，加速度计的缺点越明显）
-      float Alpha = 0.01;
-      Angle = Alpha * AngleAcc + (1 - Alpha) * AngleGyro;
-
-      if (Angle > 60 || Angle < -60) // 角度超出可控范围
-      {
-        RunFlag = 0;
-      }
-
-      if (RunFlag)
-      {
-        /*角度环调控*/
-        AnglePID.Actual = Angle;
-        // AnglePID.Out = AnglePID.Kp * (AnglePID.Target - AnglePID.Actual) - AnglePID.Kd * GyroY_Actual;
-        PID_Update(&AnglePID);
-        
-        /*角速度环调控*/
-        // GyroPID.Target=AnglePID.Out;
-        // GyroPID.Actual=GyroY_Actual;
-        // PID_Update(&GyroPID);
-
-        AvePwm = -(AnglePID.Out);
-
-        int16_t leftPwm = (int16_t)(AvePwm + DifPwm / 2.0f);
-        int16_t rightPwm = (int16_t)(AvePwm - DifPwm / 2.0f);
-
-        if (leftPwm > 100)
-          leftPwm = 100;
-        else if (leftPwm < -100)
-          leftPwm = -100;
-        if (rightPwm > 100)
-          rightPwm = 100;
-        else if (rightPwm < -100)
-          rightPwm = -100;
-
-        Servo_SetSpeed_left(leftPwm);
-        Servo_SetSpeed_right(rightPwm);
-      }
-      else
-      {
-        Servo_SetSpeed_left (0);
-        Servo_SetSpeed_right(0); // 电机停转，防止失控
-      }
-    }
-    Count1++;
-    if (Count1 >= 30) // 30ms定时
-    {
-      Count1 = 0;
-      // 编码电机速度(转/秒) = 边沿数 / (极边沿 × 减速比 × 测量周期)
-      SpeedL_f = Encode_Get_left() / ENCODER_SCALE;
-      SpeedR_f = Encode_Get_right() / ENCODER_SCALE;
-
-      AveSpeed = (SpeedL_f + SpeedR_f) / 2.0f;
-      DifSpeed = SpeedL_f - SpeedR_f;
-
-      if (RunFlag)
-      {
-        /*速度环调控*/
-        SpeedPID.Actual = AveSpeed;
-        PID_Update(&SpeedPID);
-        AnglePID.Target = SpeedPID.Out;
-
-        /*转向环调控*/
-        TurnPID.Actual = DifSpeed;
-        PID_Update(&TurnPID);
-        DifPwm = TurnPID.Out;
-      }
-    }
-  }
+  /* USER CODE END DMA1_Channel5_IRQn 1 */
 }
 
-/* USER CODE END TIM1_UP_IRQn 0 */
-/* USER CODE BEGIN TIM1_UP_IRQn 1 */
+/**
+  * @brief This function handles DMA1 channel6 global interrupt.
+  */
+void DMA1_Channel6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 0 */
 
-/* USER CODE END TIM1_UP_IRQn 1 */
+  /* USER CODE END DMA1_Channel6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart2_rx);
+  /* USER CODE BEGIN DMA1_Channel6_IRQn 1 */
+
+  /* USER CODE END DMA1_Channel6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles TIM1 update interrupt.
+  */
+void TIM1_UP_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM1_UP_IRQn 0 */
+
+  /* USER CODE END TIM1_UP_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim1);
+  /* USER CODE BEGIN TIM1_UP_IRQn 1 */
+
+  /* USER CODE END TIM1_UP_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART1 global interrupt.
+  */
+void USART1_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART1_IRQn 0 */
+
+  /* USER CODE END USART1_IRQn 0 */
+  HAL_UART_IRQHandler(&huart1);
+  /* USER CODE BEGIN USART1_IRQn 1 */
+
+  /* USER CODE END USART1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART2 global interrupt.
+  */
+void USART2_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART2_IRQn 0 */
+
+  /* USER CODE END USART2_IRQn 0 */
+  HAL_UART_IRQHandler(&huart2);
+  /* USER CODE BEGIN USART2_IRQn 1 */
+
+  /* USER CODE END USART2_IRQn 1 */
+}
+
+/* USER CODE BEGIN 1 */
+
+/* USER CODE END 1 */

@@ -1,312 +1,421 @@
-#include "MENU.h"
+/*
+ * 树形菜单系统 — 核心实现
+ *
+ * 功能:
+ *   1. 树导航: UP/DOWN 循环, ENTER 进入, BACK 返回 (带光标恢复)
+ *   2. 滚动列表: 超过 MENU_VISIBLE_ROWS 项时自动滚动
+ *   3. 编辑模式: ENTER 进入 → UP/DOWN 改值 → 双击 ENTER 切步进 → BACK 退出
+ *   4. int32 / float 双类型支持
+ */
 
-#define MENU_MAX_SIZE (64)
+#include "menu.h"
+#include "oled_gfx.h"
+#include "stdio.h"
 
- 
+/* 步进值表: 0.1, 1, 10, 100 — 双击 ENTER 循环 */
+const float s_menu_steps[MENU_STEP_COUNT] = { 0.01,0.1f,1.0f, 10.0f, 100.0f};
 
-static MENU Menu_Item_Arr[MENU_MAX_SIZE];
-static uint8_t Menu_Arr_Index = 0;
-static uint16_t flash_Index = 1;
+static struct menu_node_t *s_current_pst = NULL;
+static volatile bool s_dirty_b = false;
+static struct keyfunc_subscriber_t s_menu_sub;
+static struct menu_node_t *s_nav_stack[8];
+static int s_nav_top = -1;
+static bool s_editing = false;
 
-static void __Create_Menu_Item(MENU *parent, MENU *me, const char name[], void *data, MENU_KIND kind, bool islimit, float limit_Min, float limit_Max, bool save_to_flash)
+/* 按键映射 */
+#define KEY_MENU_UP     KEY_1_em
+#define KEY_MENU_DOWN   KEY_4_em
+#define KEY_MENU_ENTER  KEY_3_em
+#define KEY_MENU_BACK   KEY_2_em
+
+/* 前向声明 */
+static void s_menu_folder_draw(struct menu_node_t *node);
+
+/* ================================================================
+ * 辅助函数
+ * ================================================================ */
+
+/* 当前节点是否有可编辑数据 (int 或 float) */
+static bool s_has_data(struct menu_node_t *n)
 {
-    if (parent->kind != MENU_Folder)
-        return;
+    return (n->data_type == DATA_INT && n->data != NULL)
+        || (n->data_type == DATA_FLOAT && n->data_f != NULL);
+}
 
-    me->name = name;
-    me->Sons = 0;
+/* 获取当前步进值 */
+static float s_get_step(struct menu_node_t *n)
+{
+    return s_menu_steps[n->step_idx % MENU_STEP_COUNT];
+}
 
-    me->select = false;
+/* 增加值 (UP) */
+static void s_adjust_plus(struct menu_node_t *n)
+{
+    float step = s_get_step(n);
+    if (n->data_type == DATA_INT && n->data) {
+        int32_t v = (int32_t)step;
+        if (v < 1) v = 1;  /* int 模式最小步进 1 */
+        *n->data += v;
+        if (n->data_max != 0 && *n->data > n->data_max)
+            *n->data = n->data_max;
+    } else if (n->data_type == DATA_FLOAT && n->data_f) {
+        *n->data_f += step;
+        if (n->data_max != 0 && *n->data_f > (float)n->data_max)
+            *n->data_f = (float)n->data_max;
+    }
+}
 
-    me->parent = parent;
-    me->child = NULL;
-    me->next = NULL;
-    me->prev = NULL;
+/* 减小值 (DOWN) */
+static void s_adjust_minus(struct menu_node_t *n)
+{
+    float step = s_get_step(n);
+    if (n->data_type == DATA_INT && n->data) {
+        int32_t v = (int32_t)step;
+        if (v < 1) v = 1;
+        *n->data -= v;
+        if (n->data_min != 0 && *n->data < n->data_min)
+            *n->data = n->data_min;
+    } else if (n->data_type == DATA_FLOAT && n->data_f) {
+        *n->data_f -= step;
+        if (n->data_min != 0 && *n->data_f < (float)n->data_min)
+            *n->data_f = (float)n->data_min;
+    }
+}
 
-    me->data = data;
+/* 格式化值为字符串 (int 或 float) */
+static void s_format_value(struct menu_node_t *n, char *buf, uint8_t bufsize)
+{
+    if (n->data_type == DATA_INT && n->data) {
+        snprintf(buf, bufsize, "%d", (int)*n->data);
+    } else if (n->data_type == DATA_FLOAT && n->data_f) {
+        float v = *n->data_f;
+        if (v == (int)v)
+            snprintf(buf, bufsize, "%d", (int)v);
+        else
+            snprintf(buf, bufsize, "%.2f", (double)v);
+    } else {
+        buf[0] = '-'; buf[1] = '-'; buf[2] = '\0';
+    }
+}
+
+/* 子节点计数 */
+static uint8_t s_count_children(struct menu_node_t *node)
+{
+    uint8_t n = 0;
+    struct menu_node_t *c = node->first_child;
+    while (c) { n++; c = c->next; }
+    return n;
+}
+
+/* ================================================================
+ * 树构建
+ * ================================================================ */
+
+struct menu_base_t *menu_create_item(struct menu_node_t *parent,
+                                     struct menu_node_t *me,
+                                     const char *name,
+                                     enum menu_kind_e kind,
+                                     void (*draw)(struct menu_node_t *))
+{
+    me->base.name = name;
     me->kind = kind;
+    me->draw = draw;
+    me->parent = parent;
+    me->first_child = NULL;
+    me->next = NULL;
+    me->cursor = 0;
+    me->view_offset = 0;
 
-    me->isLimit = islimit;
-    me->limit_min = limit_Min;
-    me->limit_max = limit_Max;
-    me->save_to_flash = save_to_flash;
+    /* 可编辑数据默认值 */
+    me->data = NULL;
+    me->data_f = NULL;
+    me->data_type = DATA_INT;
+    me->step_idx = 1;           /* 默认步进 s_menu_steps[1] = 1.0 */
+    me->data_min = 0;
+    me->data_max = 0;
 
-    if (kind == uint8_Box || kind == int8_Box)
-    {
-        me->data_index = flash_Index;
-        flash_Index++;
-    }
-    else if (kind == uint16_Box || kind == int16_Box)
-    {
-        me->data_index = flash_Index;
-        flash_Index += 1;
-    }
-    else if (kind == uint32_Box || kind == int32_Box || kind == float_Box)
-    {
-        me->data_index = flash_Index; // 两个uint16_t型变量
-        flash_Index += 2;
-    }
-    else if (kind == bool_Box)
-    {
-        me->data_index = flash_Index;
-        flash_Index++;
-    }
+    INIT_LIST_HEAD(&me->list);
 
-    if (flag == 1 && save_to_flash)  // 第一次上电时 将storeData赋值
-    {
-        switch (me->kind)
-        {
-        case int32_Box:
-            Store_Data[me->data_index] = (uint16_t)*(int32_t *)(me->data);
-            Store_Data[me->data_index + 1] = (uint16_t)(*(int32_t *)(me->data) >> 16);
-            break;
-        case float_Box:
-            Store_Data[me->data_index] = *(uint16_t*)((uint8_t*)&(*( float *)(me->data)));
-            Store_Data[me->data_index + 1] = *(uint16_t *)((uint8_t*)&(*(float *)(me->data)) + 2);
-            break;
-        case uint8_Box:
-            Store_Data[me->data_index] = (uint16_t)*(uint8_t *)(me->data);
-            break;
-        case int8_Box:
-            Store_Data[me->data_index] = (uint16_t)*(int8_t *)(me->data);
-            break;
-        case uint16_Box:
-            Store_Data[me->data_index] = *(uint16_t *)(me->data);
-            break;
-        case int16_Box:
-            Store_Data[me->data_index] = (uint16_t)*(int16_t *)(me->data);
-            break;
-        case uint32_Box:
-            Store_Data[me->data_index] = (uint16_t)*(uint32_t *)(me->data);
-            Store_Data[me->data_index + 1] = (uint16_t)(*(uint32_t *)(me->data) >> 16);
-            break;
-        default:
-            break;
-        }
-        Store_Save();
-    }
-
-    if (parent->Sons == 0)
-    {
-        parent->child = me;
-        // parent->No = 1; // Son有自增，因为当son = 1时 ， no 会 = 0；
-    }
-    else
-    {
-        MENU *p = parent->child;
-        while (p->next != NULL)
-        {
-            p = p->next;
-        }
-        p->next = me;
-        me->prev = p;
-    }
-
-    
-    parent->Sons++;
-    me->No = parent->Sons;
-}
-
-#define Create_Menu_Item(parent, me, name, data, kind) __Create_Menu_Item(parent, me, name, data, kind, false, 0, 0, true)
-
-void Create_Menu_Folder(MENU *parent, MENU *me, const char name[])
-{
-    Create_Menu_Item(parent, me, name, NULL, MENU_Folder);
-}
-
-void Create_Menu_Number(MENU *parent, MENU *me, const char name[], void *data, MENU_KIND kind)
-{
-    Create_Menu_Item(parent, me, name, data, kind);
-}
-
-MENU *dynamicCreate_Menu_Folder(MENU *parent, const char name[])
-{
-    MENU *me = &Menu_Item_Arr[Menu_Arr_Index++];
-
-    Create_Menu_Item(parent, me, name, NULL, MENU_Folder);
-
-    return me;
-}
-
-void dynamicCreate_Menu_Number(MENU *parent, const char name[], void *data, MENU_KIND kind)
-{
-    MENU *me = &Menu_Item_Arr[Menu_Arr_Index++];
-
-    /* me->data_index = flash_Index++; */
-
-    Create_Menu_Item(parent, me, name, data, kind);
-}
-
-void create_Menu_LimitNumberBox(MENU *father, MENU *me, const char *name, void *data, MENU_KIND kind, float limit_Min, float limit_Max)
-{
-    __Create_Menu_Item(father, me, name, data, kind, true, limit_Min, limit_Max, true);
-}
-
-MENU *dynamicCreate_Menu_LimitNumberBox(MENU *parent, const char name[], void *data, MENU_KIND kind, float limit_Min, float limit_Max)
-{
-    if (Menu_Arr_Index >= MENU_MAX_SIZE)
-        return NULL;
-
-    MENU *me = &Menu_Item_Arr[Menu_Arr_Index++]; // 实质：创建一个指向该静态内存池的指针
-
-    create_Menu_LimitNumberBox(parent, me, name, data, kind, limit_Min, limit_Max);
-
-    return me; // 该返回值的本质：获得文件夹的地址，从而可以在其下面进行创建文件
-}
-
-void dynamicCreate_Menu_NumberNoFlash(MENU *parent, const char name[], void *data, MENU_KIND kind)
-{
-    MENU *me = &Menu_Item_Arr[Menu_Arr_Index++];
-    Create_Menu_Item(parent, me, name, data, kind);
-    me->save_to_flash = false;  // 覆盖宏里的默认true
-}
-
-void Menu_SyncVarToFlash(void *data_ptr)
-{
-    for (uint8_t i = 0; i < Menu_Arr_Index; i++)
-    {
-        MENU *item = &Menu_Item_Arr[i];
-        if (item->data != data_ptr || !item->save_to_flash || item->kind == MENU_Folder)
-            continue;  //符合if条件的话进行下一次循环
-
-        switch (item->kind)
-        {
-        case int32_Box:
-            Store_Data[item->data_index] = (uint16_t)*(int32_t *)data_ptr;
-            Store_Data[item->data_index + 1] = (uint16_t)(*(int32_t *)data_ptr >> 16);
-            break;
-        case float_Box:
-            Store_Data[item->data_index] = *(uint16_t *)((uint8_t *)data_ptr);
-            Store_Data[item->data_index + 1] = *(uint16_t *)((uint8_t *)data_ptr + 2);
-            break;
-        case uint8_Box:
-            Store_Data[item->data_index] = (uint16_t)*(uint8_t *)data_ptr;
-            break;
-        case int8_Box:
-            Store_Data[item->data_index] = (uint16_t)*(int8_t *)data_ptr;
-            break;
-        case uint16_Box:
-            Store_Data[item->data_index] = *(uint16_t *)data_ptr;
-            break;
-        case int16_Box:
-            Store_Data[item->data_index] = (uint16_t)*(int16_t *)data_ptr;
-            break;
-        case uint32_Box:
-            Store_Data[item->data_index] = (uint16_t)*(uint32_t *)data_ptr;
-            Store_Data[item->data_index + 1] = (uint16_t)(*(uint32_t *)data_ptr >> 16);
-            break;
-        case bool_Box:
-            Store_Data[item->data_index] = (uint16_t)*(bool *)data_ptr;
-            break;
-        default:
-            break;
+    /* 挂到 parent 子链表末尾 */
+    if (parent) {
+        if (!parent->first_child) {
+            parent->first_child = me;
+        } else {
+            struct menu_node_t *p = parent->first_child;
+            while (p->next) p = p->next;
+            p->next = me;
         }
     }
+
+    /* 第一个创建的节点作为首页 */
+    if (!s_current_pst)
+        s_current_pst = me;
+
+    return &me->base;
 }
 
-void Menu_FlashSave(void)
-{
-    Store_Save();
-}
+/* ================================================================
+ * 按键事件处理
+ * ================================================================ */
 
-// 该函数的本质是将传入Menu下的（子菜单）首尾相接 , 因此如果要引入flash的话需要对最后的p.next == NULL 的情况的p本身进行处理，因为它没有经历过flash的初始化
-void Circle_Menu(MENU *Menu)
+static void s_menu_key_handler(enum Key_Id_e key_em, enum KeyFunc_Event_e ev_em)
 {
-    if (Menu->child == NULL) // 没有子菜单就退出
+    if (!s_current_pst) return;
+
+    struct menu_node_t *target;
+
+    /* ---- 双击: 编辑模式下切换步进值 ---- */
+    if (ev_em == KEYFUNC_DOUBLE_em) {
+        if (key_em == KEY_MENU_ENTER && s_editing && s_has_data(s_current_pst)) {
+            s_current_pst->step_idx =
+                (s_current_pst->step_idx + 1) % MENU_STEP_COUNT;
+            s_dirty_b = true;
+        }
         return;
-
-    MENU *hp = Menu->child;
-    MENU *p = Menu->child;
-
-    if (hp->next == NULL)
-    {
-        Circle_Menu(hp);
     }
-    while (p->next != NULL) // 只有在while里面才会真正遍历每个文件，因此可以在此处进行数据的获取
+    else if (ev_em == KEYFUNC_LONG_em)
     {
-        if (p->kind == MENU_Folder)
-        {
-            Circle_Menu(p);
+        /* 长按 ENTER: 恢复当前叶子的默认值 */
+        if (key_em == KEY_MENU_ENTER && s_has_data(s_current_pst)) {
+            menu_reset_to_default(s_current_pst);
+            s_dirty_b = true;
         }
-        if (flag == 0)   // 将storedata的数据重新赋值给对应data
-        {
+    }
+    
 
-            if (p->kind != MENU_Folder && p->save_to_flash)
-            {
-                switch (p->kind)
-                {
-                case uint8_Box:
-                    *(uint8_t *)p->data = (uint8_t)Store_Data[p->data_index];
-                    break;
-                case int8_Box:
-                    *(int8_t *)p->data = (int8_t)Store_Data[p->data_index];
-                    break;
-                case uint16_Box:
-                    *(uint16_t *)p->data = (uint16_t)Store_Data[p->data_index];
-                    break;
-                case int16_Box:
-                    *(int16_t *)p->data = (int16_t)Store_Data[p->data_index];
-                    break;
-                case uint32_Box:
-                    *(uint32_t *)p->data = (uint32_t)Store_Data[p->data_index] | (uint32_t)Store_Data[p->data_index + 1] << 16;
-                    break;
-                case int32_Box:
-                    *(int32_t *)p->data = (int32_t)Store_Data[p->data_index] | (int32_t)Store_Data[p->data_index + 1] << 16; // 看来是低位先行
-                    break;
-                case float_Box:
-                    *(float *)p->data = *(float *)&Store_Data[p->data_index]; // 这步我没太看懂
-                    break;
-                case bool_Box:
-                    *(bool *)p->data = (bool)Store_Data[p->data_index];
-                    break;
-                default:
-                    break;
-                }
+    /* 只处理单击 */
+    if (ev_em != KEYFUNC_SINGLE_em) return;
+
+    switch (key_em) {
+
+    case KEY_MENU_DOWN:
+        if (s_editing && s_has_data(s_current_pst)) {
+            s_adjust_minus(s_current_pst);
+            s_dirty_b = true;
+        } else if (s_current_pst->first_child) {
+            uint8_t count = s_count_children(s_current_pst);
+            if (count > 0) {
+                s_current_pst->cursor = (s_current_pst->cursor + 1) % count;
+                /* 滚动: 光标超出可视区域下界 */
+                if (s_current_pst->cursor >= s_current_pst->view_offset + MENU_VISIBLE_ROWS)
+                    s_current_pst->view_offset = s_current_pst->cursor - MENU_VISIBLE_ROWS + 1;
+                /* wrap-around 时也可能超出上界, 再检查一次 */
+                if (s_current_pst->cursor < s_current_pst->view_offset)
+                    s_current_pst->view_offset = s_current_pst->cursor;
+                s_dirty_b = true;
             }
         }
+        break;
 
-        p = p->next;
+    case KEY_MENU_UP:
+        if (s_editing && s_has_data(s_current_pst)) {
+            s_adjust_plus(s_current_pst);
+            s_dirty_b = true;
+        } else if (s_current_pst->first_child) {
+            uint8_t count = s_count_children(s_current_pst);
+            if (count > 0) {
+                s_current_pst->cursor = (s_current_pst->cursor == 0)
+                    ? count - 1
+                    : s_current_pst->cursor - 1;
+                /* 滚动: 光标超出可视区域上界 */
+                if (s_current_pst->cursor < s_current_pst->view_offset)
+                    s_current_pst->view_offset = s_current_pst->cursor;
+                /* wrap-around 时也可能超出下界, 再检查一次 */
+                if (s_current_pst->cursor >= s_current_pst->view_offset + MENU_VISIBLE_ROWS)
+                    s_current_pst->view_offset = s_current_pst->cursor - MENU_VISIBLE_ROWS + 1;
+                s_dirty_b = true;
+            }
+        }
+        break;
+
+    case KEY_MENU_ENTER:
+        if (s_current_pst->first_child) {
+            /* 文件夹: 进入高亮子项 */
+            target = s_current_pst->first_child;
+            {
+                uint8_t i;
+                for (i = 0; i < s_current_pst->cursor && target; i++)
+                    target = target->next;
+            }
+            if (target) {
+                if (s_nav_top < 7)
+                    s_nav_stack[++s_nav_top] = s_current_pst;
+                s_current_pst = target;
+                s_editing = false;
+                s_dirty_b = true;
+            }
+        } else if (s_has_data(s_current_pst)) {
+            /* 叶子有数据: 切换编辑模式 */
+            s_editing = !s_editing;
+            s_dirty_b = true;
+        }
+        break;
+
+    case KEY_MENU_BACK:
+        if (s_editing) {
+            s_editing = false;
+            s_dirty_b = true;
+        } else if (s_nav_top >= 0) {
+            s_current_pst = s_nav_stack[s_nav_top--];
+            s_dirty_b = true;
+        } else if (s_current_pst->parent) {
+            s_current_pst = s_current_pst->parent;
+            s_dirty_b = true;
+        }
+        break;
+
+    default:
+        break;
+    }
+}
+
+/* ================================================================
+ * 初始化 + API
+ * ================================================================ */
+
+void menu_init_v(void)
+{
+    INIT_LIST_HEAD(&s_menu_sub.list);
+    s_menu_sub.callback_pst = s_menu_key_handler;
+    keyfunc_subscriber_add_v(&s_menu_sub);
+    s_dirty_b = true;
+}
+
+void menu_navigate_v(struct menu_node_t *target)
+{
+    if (!target) return;
+    s_current_pst = target;
+    s_dirty_b = true;
+}
+
+struct menu_node_t *menu_current_get_pst(void)
+{
+    return s_current_pst;
+}
+
+bool menu_leaf_is_editing(void)
+{
+    return s_editing;
+}
+
+void menu_reset_to_default(struct menu_node_t *n)
+{
+    if (!n) return;
+    if (n->data_type == DATA_INT && n->data) {
+        *n->data = n->data_default;
+    } else if (n->data_type == DATA_FLOAT && n->data_f) {
+        *n->data_f = n->data_f_default;
+    }
+}
+
+void menu_request_refresh(struct menu_base_t *base)
+{
+    /* base → node 下转型, 只有当前正在显示这个节点时才触发重绘 */
+    struct menu_node_t *me = to_menu_node(base);
+    if (base && s_current_pst == me)
+        s_dirty_b = true;
+}
+
+/* ================================================================
+ * 显示
+ * ================================================================ */
+
+/*
+ * 文件夹通用显示 (带滚动)
+ *
+ * 布局:
+ *   (0, 0)   标题 (8x16, 16px)
+ *   (0, 20)  子项 view_offset+0  (6x8, 14px 行距)
+ *   (0, 34)  子项 view_offset+1
+ *   (0, 48)  子项 view_offset+2
+ *
+ * 超过 MENU_VISIBLE_ROWS 项时, 底部显示 ^ v 滚动指示
+ */
+static void s_menu_folder_draw(struct menu_node_t *node)
+{
+    struct menu_node_t *child;                          //定义孩子
+    uint8_t i, row;                                     //定义i，row行
+    uint8_t total;                                      //子菜单数量
+
+    /* 标题 */
+    OLED_ShowString(0, 0, node->base.name, OLED_8X16);       //父菜单的名字
+
+    /* 定位到 view_offset 对应的子项 */
+    child = node->first_child;                          //父菜单第一个子菜单
+    for (i = 0; i < node->view_offset && child; i++)    //view_offset 决定了当前显示第几个子项
+        child = child->next;
+
+    /* 绘制可见行 */
+    total = s_count_children(node);                     //子菜单数量得到
+    row = 0;
+    while (child && row < MENU_VISIBLE_ROWS) {
+        uint8_t y = 20 + row * 14;                      //y = 20 + row * 14 行
+        uint8_t item_idx = node->view_offset + row;     //偏移量 + 显示的行数 最大显示行数只有4
+
+        /* 光标标记 */                                  
+        if (item_idx == node->cursor)                   //
+            OLED_ShowString(0, y, ">>", OLED_6X8);
+        else
+            OLED_ShowString(0, y, "  ", OLED_6X8);
+
+        /* 类型指示 */
+        if (child->first_child)                         //文件夹下的子菜单的子菜单没有first_child
+            OLED_ShowString(12, y, "[+]", OLED_6X8);    /* 文件夹 */
+        else if (s_has_data(child))
+            OLED_ShowString(12, y, "[#]", OLED_6X8);    /* 可编辑叶子 */
+        else
+            OLED_ShowString(12, y, " > ", OLED_6X8);    /* 普通叶子 */
+
+        OLED_ShowString(30, y, child->base.name, OLED_6X8);
+
+        child = child->next;
+        row++;
     }
 
-    if (hp->next != NULL)
-    {
-        Circle_Menu(p);
-        if (flag == 0 && p->save_to_flash && p->kind != MENU_Folder)
-        {
-        switch (p->kind)
-        {
-        case uint8_Box:
-            *(uint8_t *)p->data = (uint8_t)Store_Data[p->data_index];
-            break;
-        case int8_Box:
-            *(int8_t *)p->data = (int8_t)Store_Data[p->data_index];
-            break;
-        case uint16_Box:
-            *(uint16_t *)p->data = (uint16_t)Store_Data[p->data_index];
-            break;
-        case int16_Box:
-            *(int16_t *)p->data = (int16_t)Store_Data[p->data_index];
-            break;
-        case uint32_Box:
-            *(uint32_t *)p->data = (uint32_t)Store_Data[p->data_index] | (uint32_t)Store_Data[p->data_index + 1] << 16;
-            break;
-        case int32_Box:
-            *(int32_t *)p->data = (int32_t)Store_Data[p->data_index] | (int32_t)Store_Data[p->data_index + 1] << 16; // 看来是低位先行
-            break;
-        case float_Box:
-            *(float *)p->data = *(float *)&Store_Data[p->data_index]; // 这步我没太看懂
-            break;
-        case bool_Box:
-            *(bool *)p->data = (bool)Store_Data[p->data_index];
-            break;
-        default:
-            break;
-        }
-        }
-
-        hp->prev = p;
-        p->next = hp;
-
-        // 需要根据数据类型进行正确赋值
+    /* 滚动指示器 */
+    if (total > MENU_VISIBLE_ROWS) {
+        if (node->view_offset > 0)
+            OLED_ShowChar(120, 20, '^', OLED_6X8);
+        if (node->view_offset + MENU_VISIBLE_ROWS < total)
+            OLED_ShowChar(120, 48, 'v', OLED_6X8);
     }
+}
+
+void menu_task_v(void)
+{
+    if (!s_dirty_b || !s_current_pst) return;
+    s_dirty_b = false;
+
+    OLED_Clear();
+
+    if (s_current_pst->first_child) {
+        s_menu_folder_draw(s_current_pst);
+    } else {
+        if (s_current_pst->draw)
+            s_current_pst->draw(s_current_pst);
+        else
+            OLED_ShowString(0, 24, s_current_pst->base.name, OLED_8X16);
+
+        /* 有绑定数据 → 底部显示值 + 步进 + 模式 */
+        if (s_has_data(s_current_pst)) {
+            char buf[20];
+            s_format_value(s_current_pst, buf, sizeof(buf));
+            OLED_ShowString(0, 48, buf, OLED_8X16);
+
+            if (s_editing) {
+                char step_buf[10];
+                float step = s_get_step(s_current_pst);
+                if (step == (int)step)
+                    snprintf(step_buf, sizeof(step_buf), "s:%d", (int)step);
+                else
+                    snprintf(step_buf, sizeof(step_buf), "s:%.2f", (double)step);
+                OLED_ShowString(60, 48, step_buf, OLED_6X8);
+                OLED_ShowString(100, 48, "EDIT", OLED_6X8);
+            } else {
+                OLED_ShowString(72, 48, "[ENT]", OLED_6X8);
+            }
+        }
+    }
+
+    OLED_Update();
 }

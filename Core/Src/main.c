@@ -78,64 +78,8 @@ uint8_t rece_it_data;
 
 uint8_t buf[30];
 
-stUARTFrameTdf stUARTFrame = {
-    .usFrameHead = 0x6AA6,
-    .ucSumCheck = 1,
 
-};
 
-// extern uint8_t dma_buf[30];
-void USART1_IRQHandler(void)
-{
-  // 检查是否接收到数据
-  if (LL_USART_IsActiveFlag_IDLE(USART1) && LL_USART_IsEnabledIT_IDLE(USART1))
-  {
-
-    // LL_USART_ClearFlag_IDLE(USART1);
-
-    // // 停止DMA接受 ，以便读取当前接受了多少数据
-    // LL_DMA_DisableChannel(DMA1, LL_DMA_CHANNEL_5);
-
-    // uint32_t remaining = LL_DMA_GetDataLength(DMA1, LL_DMA_CHANNEL_5);
-
-    // LL_DMA_SetDataLength(DMA1, LL_DMA_CHANNEL_5, 10);
-
-    // LL_DMA_EnableChannel(DMA1, LL_DMA_CHANNEL_5);
-
-    // uint32_t received = 10 - remaining;
-    // for (int i = 0; i < received; i++)
-    // {
-    //   ucRingBufWrite(&stRingBuf_t, dma_buf[i]);
-    // }
-    // emUartCallBackInline( gapstUartDevice[UART_DEVICE_1]);
-  }
-}
-
-uint8_t temp_RxRingBuf[200];
-stUartParamInitTdf stUartParamInit_1 = {
-    .pstHandle = USART2,
-    .pucRxRingBuf = temp_RxRingBuf,
-    .ulRxRingBufSize = 200,
-    .ulDmaRxBufSize = 64,
-    .stFrameCfg = {0x6AA6, emChecksumType_Sum},
-    .stUartCfg = {
-        .ulBaterate = 9600,
-        .ulMode = LL_USART_DIRECTION_TX_RX,
-        .ulParity = LL_USART_PARITY_NONE,
-        .ulStopBits = LL_USART_STOPBITS_1,
-        .ulWordLength = LL_USART_DATAWIDTH_8B,
-    },
-    .pstDmaHandle = DMA1,
-    .ulDmaChannel = LL_DMA_CHANNEL_6,
-};
-// 6A A6 0C 00 00 4C 40 00 00 4C 40 00 00 00 00 34
-void USART2_IRQHandler(void)
-{
-  if (LL_USART_IsActiveFlag_IDLE(USART2) && LL_USART_IsEnabledIT_IDLE(USART2))
-  {
-    emUartCallBackInline(gapstUartDevice[UART_DEVICE_1]);
-  }
-}
 
 /* USER CODE END 0 */
 
@@ -174,56 +118,24 @@ int main(void)
   MX_TIM4_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  MPU6050_Init(MPU6050_SCL_GPIO_Port, MPU6050_SCL_Pin, MPU6050_SDA_GPIO_Port, MPU6050_SDA_Pin);
   // BlueSerial_Init();
   MX_TIM1_Init();
   Servo_Init();
   // Serial_Init_LL();
   Key_Init();
   Encode_Init();
-  Store_Init();
-  OLED_Init();
-  Menu_Init();
+  // Store_Init();
+  // OLED_Init();
+  // Menu_Init();
 
   // 初始化自己的串口的标准操作
-  gapstUartDevice[UART_DEVICE_1] = pstUartDeviceCreate(&stUartParamInit_1);
-  if (gapstUartDevice[UART_DEVICE_1] != NULL)
-  {
-    emUartInitInline(gapstUartDevice[UART_DEVICE_1]);
-    emUartStartRecvInline(gapstUartDevice[UART_DEVICE_1]);
-  }
-  char temp[50];
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    if (RunFlag)
-    {
-      LED1_OFF();
-      sprintf(temp, "%.2f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%.2f\n", SpeedPID.Kp, SpeedPID.Ki, SpeedPID.Kd, Angle, SpeedPID.Out, AvePwm, SpeedPID.Actual, AnglePID.Target);
-      emUartSendInline(gapstUartDevice[UART_DEVICE_1], (uint8_t *)temp, strlen(temp));
-    }
-    else
-    {
-      LED1_ON();
-    }
-
-    if (Key_Check(KEY_1, KEY_DOUBLE))
-    {
-      RunFlag = !RunFlag;
-    }
-    uint8_t out_data[2] = {0x01, 0x01};
-    emUartProcessInline(gapstUartDevice[UART_DEVICE_1], out_data, 2);
-    if (out_data[0] == 0x00 || out_data[1] == 0x00)
-    {
-      BlueSerial_SendArray((uint8_t *)"OK!\r\n", 5);
-    }
-    OLED_Clear();
-    Menu_Choose();
-    OLED_Update();
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

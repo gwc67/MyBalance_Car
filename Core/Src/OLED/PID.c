@@ -7,7 +7,7 @@ void PID_Update(PID_t *p)
     p->Error0 = p->Target - p->Actual;
 
     if (p->Ki != 0)
-    {
+    {   
         p->ErrorInt += p->Error0; // 误差积分
 
         /*PID优化：积分限幅*/
