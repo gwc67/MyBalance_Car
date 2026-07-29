@@ -27,11 +27,11 @@ void PID_Update(PID_t *p)
 
     p->Out = p->Kp * p->Error0 + p->Ki * p->ErrorInt + p->Kd * (p->Error0 - p->Error1);
     /*PID优化：输出偏移*/
-    if (p->Out > 0 || p->Out < 6)
+    if (p->Out > 0 && p->Out < 6)
     {
         p->Out += p->OutOffset;
     }
-    if (p->Out < 0 || p->Out > -6)
+    if (p->Out < 0 && p->Out > -6)
     {
         p->Out -= p->OutOffset;
     }

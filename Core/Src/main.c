@@ -62,15 +62,15 @@ MPU6050_raw raw;
 /* USER CODE BEGIN 0 */
 extern uint16_t time1;
 extern uint8_t TimeErrorFlag;
-extern int16_t SpeedL, SpeedR;
+extern float SpeedL_f, SpeedR_f;
 extern float AngleAcc;
 extern float AngleGyro;
 // extern   int16_t AX,AY,AZ,GX,GY,GZ;
 
 uint8_t flag;
 uint8_t RunFlag;
-int16_t LeftPwm, RightPwm;
-int16_t AvePwm, DifPwm;
+float LeftPwm, RightPwm;
+float AvePwm, DifPwm;
 
 stRingBufTdf stRingBuf_t;
 
@@ -203,7 +203,7 @@ int main(void)
     if (RunFlag)
     {
       LED1_OFF();
-      sprintf(temp, "%.2f,%.2f,%.2f,%.2f,%.2f,%d,%.2f,%.2f\n", SpeedPID.Kp, SpeedPID.Ki, SpeedPID.Kd, Angle, SpeedPID.Out, AvePwm, SpeedPID.Actual, AnglePID.Target);
+      sprintf(temp, "%.2f,%.2f,%.2f,%.2f,%.2f,%.1f,%.2f,%.2f\n", SpeedPID.Kp, SpeedPID.Ki, SpeedPID.Kd, Angle, SpeedPID.Out, AvePwm, SpeedPID.Actual, AnglePID.Target);
       emUartSendInline(gapstUartDevice[UART_DEVICE_1], (uint8_t *)temp, strlen(temp));
     }
     else

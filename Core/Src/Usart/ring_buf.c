@@ -1,5 +1,7 @@
 #include "ring_buf.h"
 
+//只有接受会使用到环形数组，write_index指的是将收到的数据写到ring_buf里面 
+//read_index指的是将ring_buf里面的读到主循环里面
 
 void vRingBufInit(pstRingBufTdf pstRingBuf,uint32_t ulLen , uint8_t *pucBuf)
 {
@@ -11,7 +13,7 @@ void vRingBufInit(pstRingBufTdf pstRingBuf,uint32_t ulLen , uint8_t *pucBuf)
     
     for (int i = 0; i < ulLen; i++)
     {
-        pucBuf[i] = 0;
+        pucBuf[i] = 0;  
     }
     
 }
@@ -75,4 +77,4 @@ uint8_t ucRingBufPeek(pstRingBufTdf psRingBuf, uint32_t ulPostion)
 
     return psRingBuf->pucBuffer[ulRealPos];
     
-}
+}   

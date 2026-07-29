@@ -242,7 +242,7 @@ static emUartErrTdf s_emParseTextCmd(stUartDeviceTdf *pstDev, pstRingBufTdf pstR
     {
         char acBuf[128];
         int n = sprintf(acBuf,
-            "R,%.2f,%.2f,%.2f,%.2f,%d,%.3f,%.3f,%.3f,%u\r\n",
+            "R,%.2f,%.2f,%.2f,%.2f,%.1f,%.3f,%.3f,%.3f,%u\r\n",
             Angle, GyroY_Actual, AnglePID.Target,  AnglePID.Out,
             AvePwm, AnglePID.Kp, AnglePID.Ki, AnglePID.Kd, RunFlag);
         s_emUartSend(pstDev, (uint8_t *)acBuf, (uint16_t)n);

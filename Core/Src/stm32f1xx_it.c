@@ -42,9 +42,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+// 编码器速度转换：raw_edges → 转/秒(rps)
+// 11PPR × 4边沿(X4编码) × 20减速比 × 0.03s测量周期 = 26.4
+#define ENCODER_SCALE (44.0f * 20.0f * 0.03f)
+
 uint16_t time1;
 uint8_t TimeErrorFlag;
-int16_t SpeedL, SpeedR;
+float SpeedL_f, SpeedR_f;
 extern uint8_t BlueSerial_RxPacket[100];
 extern uint8_t BlueSerial_RxFlag;
 float AngleAcc;
@@ -274,7 +278,7 @@ void TIM1_UP_IRQHandler()
     Key_Tick(); // 定时器扫描按键
 
     Count0++;
-    if (Count0 >= 5) // 10ms定时
+    if (Count0 >= 5) // 5ms定时
     {
       Count0 = 0;
 
@@ -316,20 +320,20 @@ void TIM1_UP_IRQHandler()
 
         AvePwm = -(AnglePID.Out);
 
-        SpeedL = AvePwm + DifPwm / 2;
-        SpeedR = AvePwm - DifPwm / 2;
+        int16_t leftPwm = (int16_t)(AvePwm + DifPwm / 2.0f);
+        int16_t rightPwm = (int16_t)(AvePwm - DifPwm / 2.0f);
 
-        if (SpeedL > 100)
-          SpeedL = 100;
-        else if (SpeedL < -100)
-          SpeedL = -100;
-        if (SpeedR > 100)
-          SpeedR = 100;
-        else if (SpeedR < -100)
-          SpeedR = -100;
+        if (leftPwm > 100)
+          leftPwm = 100;
+        else if (leftPwm < -100)
+          leftPwm = -100;
+        if (rightPwm > 100)
+          rightPwm = 100;
+        else if (rightPwm < -100)
+          rightPwm = -100;
 
-        Servo_SetSpeed_left(SpeedL);
-        Servo_SetSpeed_right(SpeedR);
+        Servo_SetSpeed_left(leftPwm);
+        Servo_SetSpeed_right(rightPwm);
       }
       else
       {
@@ -338,15 +342,15 @@ void TIM1_UP_IRQHandler()
       }
     }
     Count1++;
-    if (Count1 >= 30) // 50ms定时
+    if (Count1 >= 30) // 30ms定时
     {
       Count1 = 0;
-      // 编码电机速度：编码器测速值/极数/时间/减速比
-      SpeedL = Encode_Get_left() / 44.0 / 0.03 / 20;
-      SpeedR = Encode_Get_right() / 44.0 / 0.03 / 20;
+      // 编码电机速度(转/秒) = 边沿数 / (极边沿 × 减速比 × 测量周期)
+      SpeedL_f = Encode_Get_left() / ENCODER_SCALE;
+      SpeedR_f = Encode_Get_right() / ENCODER_SCALE;
 
-      AveSpeed = (SpeedL + SpeedR) / 2.0;
-      DifSpeed = SpeedL - SpeedR;
+      AveSpeed = (SpeedL_f + SpeedR_f) / 2.0f;
+      DifSpeed = SpeedL_f - SpeedR_f;
 
       if (RunFlag)
       {
